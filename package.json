@@ -1,0 +1,34 @@
+{
+  "name": "minotaur",
+  "version": "2.0.20",
+  "main": "index.js",
+  "bin": {
+    "minotaur": "./index.js"
+  },
+  "scripts": {
+    "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/algorithm.md -o ./gmco/yaml",
+    "generate-domain-algorithm": "node index.js generate -i ./gmco/yaml -o ./gmco/code -t ./gmco/templates/C#",
+    "transform": "node index.js transform -i ./mermaid.md -o ./output",
+    "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
+    "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "bundleDependencies":true,
+  "dependencies": {
+    "@types/node": "^22.10.3",
+    "chokidar": "^4.0.3",
+    "command-line-args": "^6.0.1",
+    "command-line-usage": "^7.0.3",
+    "commander": "^13.1.0",
+    "handlebars": "^4.7.8",
+    "jison": "^0.4.18",
+    "js-yaml": "^4.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "winston": "^3.17.0",
+    "yamljs": "^0.3.0"
+  }
+}
