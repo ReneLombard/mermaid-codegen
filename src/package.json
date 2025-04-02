@@ -1,22 +1,37 @@
 {
-  "name": "minotaur",
-  "version": "2.0.20",
+  "name": "mermaid-codegen",
+  "version": "1.0.0.0",
   "main": "index.js",
   "bin": {
-    "minotaur": "./index.js"
+    "mermaid-codegen": "./dist/index.js"
   },
   "scripts": {
     "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/algorithm.md -o ./gmco/yaml",
     "generate-domain-algorithm": "node index.js generate -i ./gmco/yaml -o ./gmco/code -t ./gmco/templates/C#",
     "transform": "node index.js transform -i ./mermaid.md -o ./output",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
-    "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\""
+    "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\"",
+    "semantic-release": "semantic-release",
+    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates && cpx LICENSE dist/"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "description": "",
-  "bundleDependencies":true,
+  "bundleDependencies": [
+    "@types/node",
+    "chokidar",
+    "command-line-args",
+    "command-line-usage",
+    "commander",
+    "handlebars",
+    "jison",
+    "js-yaml",
+    "ts-node",
+    "typescript",
+    "winston",
+    "yamljs"
+  ],
   "dependencies": {
     "@types/node": "^22.10.3",
     "chokidar": "^4.0.3",
@@ -30,5 +45,13 @@
     "typescript": "^5.7.2",
     "winston": "^3.17.0",
     "yamljs": "^0.3.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "cpx": "^1.5.0",
+    "esbuild": "^0.25.2",
+    "semantic-release": "^24.2.3"
   }
 }
