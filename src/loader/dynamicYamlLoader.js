@@ -1,7 +1,7 @@
 const YAML = require('yamljs');
 const fs = require('fs');
 const path = require('path');
-const { DynamicYamlClass } = require('../DynamicYamlClass');
+const { DynamicYamlClass } = require('../dynamicYamlClass');
 class DynamicYamlLoader {
     static loadAndMergeYamlFiles(directory) {
         console.log(`Loading and merging YAML files from directory: ${directory}`);

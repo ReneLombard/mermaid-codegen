@@ -1,4 +1,6 @@
 .npmrc
+classDiagramParser.js
+*.jison
 output/*
 # Logs
 logs

@@ -3,7 +3,7 @@ const path = require('path');
 const Handlebars = require('handlebars');
 const YAML = require('yamljs');
 const { DynamicYamlLoader } = require('./loader/dynamicYamlLoader');
-const { FileProcessor } = require('./processor/FileProcessor');
+const { FileProcessor } = require('./processor/fileProcessor');
 
 class CodeGenerator {
     constructor(fileReader, fileWriter) {
