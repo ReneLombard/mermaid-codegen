@@ -1,0 +1,74 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+{{#each Usings}}
+using {{@key}};
+{{/each}}
+
+{{#if this.Namespace}}
+namespace {{this.Namespace}}
+{
+{{/if}}
+
+[ApiController]
+[Route("api/[controller]")]
+public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+{
+    
+{{!-- Compositions --}}
+    {{#if this.Compositions}}
+    {{#each this.Compositions}}
+        private readonly {{#if (isEq this.Multiplicity "1")}}{{@key}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}} = new();
+    {{/each}}
+    {{/if}}
+    {{!-- Aggregations --}}
+    {{#if this.Aggregations}}
+    {{#each this.Aggregations}}
+        private {{#if (isEq this.Multiplicity "1")}}{{@key}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+    {{/each}}
+    {{/if}}
+    {{#if this.Associations}}
+    {{#each Associations}}
+        private {{#if (isEq this.Multiplicity "1")}}{{@key}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+    {{/each}}
+    {{/if}}
+    {{!-- Properties (Optional for Controllers) --}}
+    {{#each Attributes}}
+        {{#if this.Annotations.Required}}
+        {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
+        {{/if}}
+        {{#if this.Annotations.MaxLength}}
+        [MaxLength({{this.Annotations.MaxLength.Length}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}")]
+        {{/if}}
+        {{#if this.Annotations.MinLength}}
+        [MinLength({{this.Annotations.MinLength.Length}}, ErrorMessage="{{this.Annotations.MinLength.ErrorMessage}}")]
+        {{/if}}
+        {{#if this.Annotations.Range}}
+        [Range({{this.Annotations.Range.Min}}, {{this.Annotations.Range.Max}}{{#if this.Annotations.Range.ErrorMessage}}, ErrorMessage = "{{this.Annotations.Range.ErrorMessage}}"{{/if}})]
+        {{/if}}
+        public {{{this.Type}}} {{@key}} { get; set; }{{#if this.DefaultValue}} = {{#if (isEq this.DefaultValue "default")}}new(){{else}}{{{this.DefaultValue}}}{{/if}};{{/if}}
+
+    {{/each}}
+
+    {{!-- Methods as API Endpoints --}}
+    {{#each Methods}}
+        {{!-- Route attribute --}}
+        {{#if this.HttpMethod}}
+        [Http{{capitalize this.HttpMethod}}("{{this.Route}}")]
+        {{else}}
+        [HttpGet("{{@key}}")] {{!-- Default to GET if HttpMethod is not specified --}}
+        {{/if}}
+        {{!-- The public endpoint method (with a basic body) --}}
+        {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} IActionResult {{@key}}({{#if this.Arguments}}{{#each this.Arguments}}[From{{#if (isEq ../this.HttpMethod "POST")}}Body{{else if (isEq ../this.HttpMethod "DELETE")}}Query{{else}}Query{{/if}}] {{this.Type}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}{{/if}})
+        {
+            return On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}});
+        }
+
+        {{!-- The partial method hook with the same signature --}}
+        private partial IActionResult On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Type}} {{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}});
+    {{/each}}
+}
+
+{{#if this.Namespace}}
+}
+{{/if}}
