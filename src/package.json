@@ -1,7 +1,7 @@
 {
   "name": "mermaid-codegen",
-  "version": "1.0.0.0",
-  "main": "index.js",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
   "bin": {
     "mermaid-codegen": "./dist/index.js"
   },
@@ -11,15 +11,13 @@
     "transform": "node index.js transform -i ./mermaid.md -o ./output",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
     "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\"",
-    "semantic-release": "semantic-release",
-    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates && cpx LICENSE dist/"
+    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "description": "",
   "bundleDependencies": [
-    "@types/node",
     "chokidar",
     "command-line-args",
     "command-line-usage",
@@ -33,7 +31,6 @@
     "yamljs"
   ],
   "dependencies": {
-    "@types/node": "^22.10.3",
     "chokidar": "^4.0.3",
     "command-line-args": "^6.0.1",
     "command-line-usage": "^7.0.3",
@@ -41,6 +38,7 @@
     "handlebars": "^4.7.8",
     "jison": "^0.4.18",
     "js-yaml": "^4.1.0",
+    "mermaid-codegen": "file:mermaid-codegen-1.0.0.tgz",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "winston": "^3.17.0",
@@ -51,7 +49,6 @@
   ],
   "devDependencies": {
     "cpx": "^1.5.0",
-    "esbuild": "^0.25.2",
-    "semantic-release": "^24.2.3"
+    "esbuild": "^0.25.2"
   }
 }
