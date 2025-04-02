@@ -1,4 +1,4 @@
-name: Publish npm package 
+name: Publish npm package
 
 on:
   push:
@@ -13,8 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: cd ./src
-      - run: npm i
+      - run: cd src && npm i
 
   publish-gpr:
     needs: build
@@ -28,9 +27,8 @@ jobs:
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com/
-      - run: cd ./src
-      - run: npm i
-      - run: npm build
-      - run: npm publish
+      - run: cd src && npm i
+      - run: cd src && npm run build
+      - run: cd src && npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
