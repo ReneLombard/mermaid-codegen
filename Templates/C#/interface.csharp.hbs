@@ -1,0 +1,34 @@
+﻿using System.Collections.Generic;
+
+{{#if this.Namespace}}namespace {{this.Namespace}};{{/if}}
+
+public interface {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+{
+    {{!-- Properties --}}
+    {{#each Attributes}}
+    {{this.Scope}} {{{this.Type}}} {{@key}} { get; set; }
+    {{/each}}
+    {{!-- Methods --}}
+    {{#each Methods}}
+    {{!-- Interface methods are implicitly public, so scope is optional --}}
+    {{this.Scope}} {{{this.ReturnType}}} {{@key}}{{#if this.Arguments}}({{#each this.Arguments}} {{{this.Type}}} {{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}){{else}}(){{/if}};
+    {{/each}}
+
+    {{!-- Compositions --}}
+    {{#if this.Compositions}}
+    {{#each this.Compositions}}
+        private readonly {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}} = new();
+    {{/each}}
+    {{/if}}
+    {{!-- Aggregations --}}
+    {{#if this.Aggregations}}
+    {{#each this.Aggregations}}
+        private {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+    {{/each}}
+    {{/if}}
+    {{#if this.Associations}}
+    {{#each Associations}}
+        private {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+    {{/each}}
+    {{/if}}
+}

@@ -1,0 +1,16 @@
+{
+  "language": "CSharp",
+  "extension": "cs",
+  "mappings": {
+    "Scope": {
+      "Public": "public",
+      "Private": "private",
+      "Protected": "protected"
+    },
+    "Type": {
+      "Number": "int",
+      "String": "string",
+      "REGEX:~(.*)~": "<$1>"
+    }
+  }
+}
