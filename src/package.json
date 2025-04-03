@@ -5,6 +5,9 @@
   "bin": {
     "mermaid-codegen": "./dist/index.js"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "scripts": {
     "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/algorithm.md -o ./gmco/yaml",
     "generate-domain-algorithm": "node index.js generate -i ./gmco/yaml -o ./gmco/code -t ./gmco/templates/C#",
