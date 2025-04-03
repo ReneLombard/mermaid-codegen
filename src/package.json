@@ -1,5 +1,5 @@
 {
-  "name": "mermaid-codegen",
+  "name": "@ReneLombard/mermaid-codegen",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "bin": {
