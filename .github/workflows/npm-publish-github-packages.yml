@@ -31,4 +31,4 @@ jobs:
       - run: cd src && npm run build
       - run: cd src && npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.PUBLISHING_TOKEN}}
