@@ -3,7 +3,8 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 class MermaidTransformer {
-    constructor(input, output) {
+    constructor(input, output, skipNamespace) {
+        this.skipNamespace = skipNamespace;
         // Ensure this import is present at the top
         this.parser = require('./classDiagramParser.js').parser;
         this.inputFile = input;
@@ -277,12 +278,14 @@ class MermaidTransformer {
         const outputDir = outDirs.length ? outDirs[0] : this.outputDir;
     
         for (const [namespace, classes] of Object.entries(this.parser.yy.namespaces)) {
-            const namespaceDir = path.join(outputDir, namespace.replace(/\./g, '_'));
+            const namespaceDir = this.skipNamespace 
+                ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/')) 
+                : path.join(outputDir, namespace.replace(/\./g, '/'));
             fs.mkdirSync(namespaceDir, { recursive: true });
             for (const [className, classData] of Object.entries(classes)) {
                 this.removeEmptyKeys(classData);
                 const yamlOutput = yaml.dump(classData, { noRefs: true });
-                fs.writeFileSync(path.join(namespaceDir, `${className}.yml`), yamlOutput);
+                fs.writeFileSync(path.join(namespaceDir, `${className}.Generated.yml`), yamlOutput);
             }
         }
     }
