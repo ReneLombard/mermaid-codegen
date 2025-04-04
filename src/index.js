@@ -45,6 +45,7 @@ program
     .description('Transforms the mermaid to yml templates.')
     .requiredOption('-i, --input <input>', 'Input file path.')
     .requiredOption('-o, --output <output>', 'Output directory path.')
+    .option('-n, --skipnamespace <namespace>', 'Part of the namespace to skip for the output directory.')
     .action((opts) => {
         commandHandler.handleTransformCommand(opts);
     });
