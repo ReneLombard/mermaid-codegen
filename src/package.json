@@ -1,6 +1,6 @@
 {
   "name": "@ReneLombard/mermaid-codegen",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "./dist/index.js",
   "bin": {
     "mermaid-codegen": "./dist/index.js"
@@ -9,7 +9,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/algorithm.md -o ./gmco/yaml",
+    "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/session.md -o ./gmco/yaml -n Elekta.Brachy.Gmco",
     "generate-domain-algorithm": "node index.js generate -i ./gmco/yaml -o ./gmco/code -t ./gmco/templates/C#",
     "transform": "node index.js transform -i ./mermaid.md -o ./output",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
