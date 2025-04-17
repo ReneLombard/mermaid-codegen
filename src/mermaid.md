@@ -104,7 +104,5 @@ namespace HelloWorld.Repository {
         +Task GetReportByIdAsyncs()
     }
 }
-
 ```
-
 ## Dynamic View

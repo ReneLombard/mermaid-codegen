@@ -4,18 +4,18 @@ outline: deep
 
 ## What we will be creating
 
-In this tutorial we will be creating a `vehicle fleet management` starting application written in C# (as the only current languge supported)
+In this tutorial we will be creating a **vehicle fleet management* *starting application written in C# (as the only current languge supported)
 
 ## Initializing the Application
 
-Once the `mermaid-codegen` tool is installed (as described in the previous step), you can begin by setting up the default configuration within your application. 
+Once the **mermaid-codegen** tool is installed (as described in the previous step), you can begin by setting up the default configuration within your application. 
 
 ## Folder structure
 
 For this example we will be creating the folder structure as follows:
-
+```
 fleet-management/
-├── definitions/           # (the intermediate code that is generated)
+├── definitions/        # (the intermediate code that is generated)
 │   ├── *.Generated.yml
 │   └── .yml <--- Custom definitions
 ├── blue-prints/c#      # (the Handlebars templates)
@@ -27,22 +27,24 @@ fleet-management/
 └── src/
     └── models/
         └── <-- Source code to be generated
+```
+
 
 ## Lets get started
 
 ### Configuring the C# webapi
-Create the folder structure manually as described above `navigate to the ./src/` directory and initialize a `dotnet` project
+Create the folder structure manually as described above **navigate to the ./src/** directory and initialize a **dotnet** project
 
 Run the following command to create the project
 
-```cmd
+```
 dotnet new webapi -n fleet-management -o .\ --use-controllers true
 ```
 This should create a scaffolded webapi application. 
 
 If everything went as expected you should be able to run the default application:
 
-```cmd
+```
 dotnet run fleet-management.csproj
 ```
 
@@ -65,15 +67,15 @@ Please try to contribute the templates to add more funcitionality in the tool.
 
 3. Upon execution, the following folders and files will be created:
 
-- `blue-prints\c#\config.csharp.json`
-- A set of [handlebars](https://handlebarsjs.com/) templates, such as `class.csharp.hbs` etc are created.
+**blueprints/c#/config.csharp.json**
+
+A set of [handlebars](https://handlebarsjs.com/) templates, such as **class.csharp.hbs** etc are created.
 
 ### Now lets start with creating your first mermaid diagram
 
 For this we will start with simple [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object) classes, describing the entities in the system.
 
 1. Create a file `docs\detailed-design\fleet-management.md`
-
 2. Once created lets start by creating our first model in the document
 
 ```mermaid
@@ -112,10 +114,12 @@ namespace Models {
     }
 }
 ```
-What you should notice is the annotation in the class, forexample, <<class>>
+
+What you should notice is the annotation in the class, forexample, `<<class>>`
+
 
 This annotation will map to the relevant hbs template. e.g. 
-class.csharp.hbs <--- 
+class.csharp.hbs
 
 (hbs) -> It is a handlebars file 
 (csharp) -> For language csharp
@@ -189,8 +193,9 @@ You could now extend the default mermaid classes with application specific field
 mermaid-codegen generate -i definitions -o src -t blue-prints\C#
 ```
 
-Once this command is executed, you will see all the files are created in the followin location
+Once this command is executed, you will see all the files are created in the following location
 
+```tree
 fleet-management/
 └── src/Models           # (the intermediate code that is generated)
     ├── Driver.Generated.cs
@@ -199,7 +204,7 @@ fleet-management/
     ├── Report.Generated.cs
     ├── Driver.Generated.cs
     └── Vehicle.Generated.cs
-
+```
 5. Building the source code
 
 ```cmd
@@ -216,11 +221,14 @@ mermaid-codegen watch -m docs\detailed-design -y definitions -o ".\src" --templa
 
 With this running in the background lets check a few things:
 
-Please open the following file `class.csharp.hbs`:
+Please open the following file 
+```
+class.csharp.hbs
+```
 
 You would notice that there is already template support for attribute annotations, this can be extended to cater for your needs. 
 
-```
+```handlebars
 {{#each Attributes}} 
     {{#if this.Annotations.Required}}
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
@@ -239,10 +247,11 @@ You would notice that there is already template support for attribute annotation
 {{/each}}
 ```
 
-Please also keep an eye on the `Vehicle.Generated.cs` file as we will add annotations.
+Please also keep an eye on the 
+*Vehicle.Generated.cs* file as we will add annotations.
 
 Now you're first instinct would be to adapt the mermaid class diagram, however, there is no default flag for these annotations in its syntax, so lets copy the 
-`Vehicle.Generated.yml` and rename to `Vehicle.yml` and remove its contents and replace it with
+*Vehicle.Generated.yml* and rename to *Vehicle.yml* and remove its contents and replace it with
 
 ```yml
 Name: Vehicle
@@ -261,7 +270,7 @@ Attributes:
 
 ```
 
-The above yml code will then result in the following `DataAnnotations` in C#
+The above yml code will then result in the following *DataAnnotations* in C#
 
 ```csharp
 using System;

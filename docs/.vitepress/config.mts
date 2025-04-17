@@ -1,23 +1,17 @@
 import { defineConfig, MarkdownOptions } from 'vitepress'
-import MermaidExample from './mermaid-markdown-all.ts';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
-const allMarkdownTransformers: MarkdownOptions = {
-  // the shiki theme to highlight code blocks
-  theme: {
-    light: 'github-light',
-    dark: 'github-dark',
-  },
-
-  config: (md) => {
-    MermaidExample(md);
-  },
-};
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid({
   title: "mermaid-code-gen",
   description: "Mermaid to source code",
   appearance: 'dark',
-  markdown: allMarkdownTransformers,
+  mermaid:{
+    //mermaidConfig !theme here works for light mode since dark theme is forced in dark mode
+  },
+  markdown: {
+    toc: { level: [1, 2, 3, 4] },
+  },
   themeConfig: {
     nav: [
       { text: 'Documentation', link: '/pages/overview' },
@@ -32,9 +26,10 @@ export default defineConfig({
         items: [
           { text: 'Installation', link: '/pages/getting-started/installation' },
           { text: 'Getting Started', link: '/pages/getting-started/getting-started' },
-          { text: 'Creating your first class diagram', link: '/pages/getting-started/creating-your-first-class-diagram.md' }
+          { text: 'Language Files Explained', link: '/pages/getting-started/language-files-explained' },
         ]
-      }
+      },
+      { text: 'Avaliable Commands', link: '/pages/commands' },
     ]
   }
 })
