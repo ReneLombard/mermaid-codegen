@@ -79,20 +79,14 @@ class CodeGenerator {
                 }
 
                 const localizedYml = this.processData(elements, templatesPerLanguage.config.mappings);
-                console.log(`Templates for language: ${language}`);
-                // console.log(`Available templates: ${JSON.stringify(templatesPerLanguage.templates, null, 2)}`);
             
                 const files = templatesPerLanguage.templates.filter((file) => file.type.toLowerCase() === templateType.toLowerCase());
-                console.log(`Template type: ${templateType}`);
-                console.log(`Files to process: ${files.length}`);
-            
+          
                 files.forEach((file) => {
 
                     const jsonString = JSON.stringify(localizedYml);
                     const jsonData = JSON.parse(jsonString);
-                    const filePath = path.join(this.templates, file.fileName);
-                    
-                    const compiledTemplate = Handlebars.compile(this.fileReader.readFile(filePath));
+                    const compiledTemplate = Handlebars.compile(file.content.toString());
 
                     const result = compiledTemplate(jsonData);
 
@@ -113,7 +107,6 @@ class CodeGenerator {
         if (!namespace) {
             return configuredOutputDirectory;
         }
-
         if (namespaceConfiguration && namespaceConfiguration.namespaceFolderMap && namespaceConfiguration.namespaceFolderMap[namespace]) {
             const path = path.join(configuredOutputDirectory, namespaceConfiguration.namespaceFolderMap[namespace]);
             fs.mkdirSync(path, { recursive: true });

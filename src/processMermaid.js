@@ -294,6 +294,7 @@ class MermaidTransformer {
             const namespaceDir = this.skipNamespace 
                 ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/')) 
                 : path.join(outputDir, namespace.replace(/\./g, '/'));
+            
             fs.mkdirSync(namespaceDir, { recursive: true });
             for (const [className, classData] of Object.entries(classes)) {
                 this.removeEmptyKeys(classData);
