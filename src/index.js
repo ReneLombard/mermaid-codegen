@@ -77,6 +77,7 @@ program
     .requiredOption('-m, --mermaidInput <mermaidInput>', 'Path to Mermaid file/folder.')
     .requiredOption('-y, --ymlInput <ymlInput>', 'Path to YML file/folder.')
     .requiredOption('-o, --generateOutput <generateOutput>', 'Output directory for generate command.')
+    .option('-n, --skipnamespace <namespace>', 'Part of the namespace to skip for the output directory.')
     .requiredOption('--templates <templates>', 'Directory that contains your hbs templates.')
     .action((opts) => {
       
@@ -91,6 +92,7 @@ program
             attemptTask(() => commandHandler.handleTransformCommand({
             input: opts.mermaidInput,
             output: opts.ymlInput,
+            skipnamespace: opts.skipnamespace,
             }))
             .then(() => attemptTask(() => commandHandler.handleGenerateCommand({
                 input: opts.ymlInput,
