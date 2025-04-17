@@ -9,6 +9,7 @@ class TransformManager {
     run(opts) {
         
         if (opts.output) {
+            
             const transformer = new MermaidTransformer(opts.input,opts.output,opts.skipnamespace);
             transformer.transform();
         }

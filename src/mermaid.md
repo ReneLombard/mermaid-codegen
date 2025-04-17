@@ -30,7 +30,7 @@ The logical view of the Vehicle Management System (VMS) includes the following c
 
 ```mermaid
 classDiagram
-namespace Models {
+namespace HelloWorld.Models {
     class Vehicle {
         <<class>>
         +String Make
@@ -63,7 +63,7 @@ namespace Models {
         <<class>>
     }
 }
-namespace Repository {
+namespace HelloWorld.Repository {
     class VehicleRepository {
         <<class>>
         +Task AddVehicleAsync()
@@ -101,63 +101,10 @@ namespace Repository {
         +Task AddReportAsync()
         +Task RemoveReportAsync()
         +Task UpdateReportAsync()
-        +Task GetReportByIdAsync()
+        +Task GetReportByIdAsyncs()
     }
 }
-namespace Controller {
-    class VehicleController {
-        <<class>>
-        +Task CreateVehicleAsync()
-        +Task DeleteVehicleAsync()
-        +Task EditVehicleAsync()
-        +Task GetVehicleAsync()
-    }
 
-    class FleetController {
-        <<class>>
-        +Task CreateFleetAsync()
-        +Task DeleteFleetAsync()
-        +Task EditFleetAsync()
-        +Task GetFleetAsync()
-    }
-
-    class DriverController {
-        <<class>>
-        +Task CreateDriverAsync()
-        +Task DeleteDriverAsync()
-        +Task EditDriverAsync()
-        +Task GetDriverAsync()
-    }
-
-    class MaintenanceController {
-        <<class>>
-        +Task CreateMaintenanceAsync()
-        +Task DeleteMaintenanceAsync()
-        +Task EditMaintenanceAsync()
-        +Task GetMaintenanceAsync()
-    }
-
-    class ReportController {
-        <<class>>
-        +Task CreateReportAsync()
-        +Task DeleteReportAsync()
-        +Task EditReportAsync()
-        +Task GetReportAsync()
-    }
-}
 ```
-    Vehicle --> Fleet
-    Fleet --> Driver
-    Fleet --> Maintenance
-    Fleet --> Report
-    VehicleRepository --> Vehicle
-    FleetRepository --> Fleet
-    DriverRepository --> Driver
-    MaintenanceRepository --> Maintenance
-    ReportRepository --> Report
-    VehicleController --> VehicleRepository
-    FleetController --> FleetRepository
-    DriverController --> DriverRepository
-    MaintenanceController --> MaintenanceRepository
-    ReportController --> ReportRepository
+
 ## Dynamic View
