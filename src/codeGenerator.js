@@ -139,11 +139,15 @@ class CodeGenerator {
             
             if (Array.isArray(value)) {
                 // Process each element of the array
-                processedData[key] = value.map((item) =>
-                  typeof item === 'object'
-                    ? this.processData(item, mappings)
-                    : this.applyReplacements(item, mappings, key)
-                );
+                processedData[key] = value.map((item) => {
+                  if (typeof item === 'object') {
+                  return this.processData(item, mappings);
+                  } else {
+                  return mappings[key]
+                    ? this.applyReplacements(item, mappings, key)
+                    : item;
+                  }
+                });
               } else if (typeof value === 'object') {
                 // It's an object (and not an array), so just recurse
                 processedData[key] = this.processData(value, mappings);
