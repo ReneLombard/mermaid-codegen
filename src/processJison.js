@@ -39,7 +39,7 @@ function processJisonFile() {
         console.log('Reading the Jison file content from:', jisonFilePath);
 
         // Read the content of the Jison file
-        const jisonFileContent = fs.readFileSync(jisonFilePath);
+        const jisonFileContent = fs.readFileSync(jisonFilePath, 'utf8');
         console.log('Successfully read the Jison file.');
 
         // Step 3: Create a Jison parser
