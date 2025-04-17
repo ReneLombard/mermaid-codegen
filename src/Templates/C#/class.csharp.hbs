@@ -13,9 +13,6 @@ public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance
     {{#if this.Annotations.Required}}
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
     {{/if}}
-    {{#if this.Annotations.NumberOfPlansIsValid}}
-    [NumberOfPlansIsValid]
-    {{/if}}
     {{#if this.Annotations.MaxLength}}
     [MaxLength({{this.Annotations.MaxLength.Length}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}")]
     {{/if}}
