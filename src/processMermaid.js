@@ -245,22 +245,35 @@ class MermaidTransformer {
     }
 
     transform() {
-        const filePaths = [this.inputFile, path.join(__dirname, this.inputFile)].filter(fs.existsSync);
+        const filePaths = fs.statSync(this.inputFile).isDirectory()
+            ? fs.readdirSync(this.inputFile)
+            .filter(file => file.endsWith('.md'))
+            .map(file => path.join(this.inputFile, file))
+            : [this.inputFile, path.join(__dirname, this.inputFile)].filter(fs.existsSync);
+
         if (filePaths.length === 0) {
-            console.error('Mermaid file not found');
+            console.error('No valid Mermaid files found');
             return;
         }
+
         const outDirs = [this.outputDir, path.join(__dirname, this.outputDir)].filter(fs.existsSync);
         if (outDirs.length === 0) {
             try {
-                fs.mkdirSync(this.outputDir, { recursive: true });
+            fs.mkdirSync(this.outputDir, { recursive: true });
             } catch (error) {
-                console.error('Error creating output directory:', error.message);
-                return;
+            console.error('Error creating output directory:', error.message);
+            return;
             }
         }
-    
-        const mermaidFileContent = fs.readFileSync(filePaths[0], 'utf8');
+
+        let mermaidFileContent = '';
+        filePaths.forEach(filePath => {
+            try {
+            mermaidFileContent += fs.readFileSync(filePath) + '\n';
+            } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error.message);
+            }
+        });
     
         // Regex to find ```mermaid + classdiagram blocks
         const regex = /```mermaid\s*([\s\S]*?classdiagram[\s\S]*?)```/gim;

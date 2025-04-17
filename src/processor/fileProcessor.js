@@ -11,7 +11,7 @@ class FileProcessor {
         const templates = {};
         files.forEach((file) => {
             const filePath = path.join(directory, file);
-            const content = fs.readFileSync(filePath, 'utf8');
+            const content = fs.readFileSync(filePath);
             if (file.endsWith('.json')) {
                 try {
                     const config = JSON.parse(content);

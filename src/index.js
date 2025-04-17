@@ -82,10 +82,10 @@ program
       
         // Watch Mermaid changes
         const mermaidInputPath = path.isAbsolute(opts.mermaidInput) ? opts.mermaidInput : path.resolve(opts.mermaidInput);
-        const mermaidWatcher = chokidar.watch(`${mermaidInputPath}`, {
+        const mermaidWatcher = chokidar.watch(mermaidInputPath, {
             ignored: (path, stats) => stats?.isFile() && !path.endsWith('.md'),
             persistent: true,
-          });
+        });
         mermaidWatcher.on('change', (filePath) => {
             console.log(`Detected change in Mermaid file: ${filePath}`);
             attemptTask(() => commandHandler.handleTransformCommand({
@@ -105,8 +105,6 @@ program
         // Watch YML changes
         const ymlPath = path.isAbsolute(opts.ymlInput) ? opts.ymlInput : path.resolve(opts.ymlInput);
         console.log(`Watching YML files in: ${ymlPath}`);
-
-
 
         const ymlWatcher = chokidar.watch(`${ymlPath}/`, {
             ignored: (path, stats) => stats?.isFile() && !path.endsWith('.yml'),

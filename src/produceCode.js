@@ -3,7 +3,7 @@ const path = require('path');
 const { CodeGenerator } = require('./codeGenerator.js');
 
 const fileReader = {
-    readFile: (filePath) => fs.readFileSync(filePath, 'utf8'),
+    readFile: (filePath) => fs.readFileSync(filePath),
     fileExists: (filePath) => fs.existsSync(filePath)
 };
 

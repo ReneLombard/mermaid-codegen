@@ -2,7 +2,7 @@ const fs = require('fs');
 
 class FileReader {
     readFile(path) {
-        return fs.readFileSync(path, 'utf8');
+        return fs.readFileSync(path);
     }
 
     fileExists(path) {
