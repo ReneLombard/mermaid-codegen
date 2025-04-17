@@ -158,22 +158,27 @@ namespace Models {
 would be represented as
 
 ```yml
-Name: Driver
+Name: Vehicle
 Namespace: Models
 Type: class
 Attributes:
-  AssignedVehicles:
-    Type: List~Vehicle~
-    IsSystemType: true
-    Scope: Public
-  LicenseNumber:
+  Status:
     Type: String
     IsSystemType: true
     Scope: Public
-  Name:
+  Year:
+    Type: int
+    IsSystemType: false
+    Scope: Public
+  Model:
     Type: String
     IsSystemType: true
     Scope: Public
+  Make:
+    Type: String
+    IsSystemType: true
+    Scope: Public
+
 ```
 
 You could now extend the default mermaid classes with application specific fields (Think of max/min range attributes etc.) and add an additional file to the folder, without the Generated postfix to add additional info
@@ -206,7 +211,7 @@ dotnet run fleet-management.csproj
 Before we start lets start up the watch mode, so that it can monitor the changes of the yml and/or mermaid code and update the code accordingly
 
 ```cmd
-mermaid-codegen watch -m docs\detailed-design -y definitions -o src --templates blue-prints\C#
+mermaid-codegen watch -m docs\detailed-design -y definitions -o ".\src" --templates blue-prints\C#
 ```
 
 With this running in the background lets check a few things:
@@ -219,9 +224,6 @@ You would notice that there is already template support for attribute annotation
 {{#each Attributes}} 
     {{#if this.Annotations.Required}}
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
-    {{/if}}
-    {{#if this.Annotations.NumberOfPlansIsValid}}
-    [NumberOfPlansIsValid]
     {{/if}}
     {{#if this.Annotations.MaxLength}}
     [MaxLength({{this.Annotations.MaxLength.Length}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}")]
@@ -240,11 +242,45 @@ You would notice that there is already template support for attribute annotation
 Please also keep an eye on the `Vehicle.Generated.cs` file as we will add annotations.
 
 Now you're first instinct would be to adapt the mermaid class diagram, however, there is no default flag for these annotations in its syntax, so lets copy the 
-`Vehicle.Generated.yml` and remove its contents and replace it with
+`Vehicle.Generated.yml` and rename to `Vehicle.yml` and remove its contents and replace it with
 
 ```yml
+Name: Vehicle
+Usings:
+  - System.ComponentModel.DataAnnotations
+Type: class
+Attributes:
+  Year:
+    Annotations:
+      MaxLength:
+        Length: 2100
+        ErrorMessage: "Year must be less than 2100"
+      MinLength:
+        Length: 1900
+        ErrorMessage: "Year must be greater than 1900"
 
 ```
 
+The above yml code will then result in the following `DataAnnotations` in C#
 
+```csharp
+using System;
+using System.Collections.Generic;
 
+namespace Models;
+
+public partial class Vehicle 
+{
+
+    [MaxLength(2100, ErrorMessage="Year must be less than 2100")]
+    [MinLength(1900, ErrorMessage="Year must be greater than 1900")]
+    public int Year { get; set; }
+
+    public string Status { get; set; }
+
+    public string Model { get; set; }
+
+    public string Make { get; set; }
+
+}
+```
