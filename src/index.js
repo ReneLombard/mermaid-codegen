@@ -115,7 +115,7 @@ program
         ymlWatcher
             .on('ready', () => console.log('Initial scan complete. Ready for changes'))
             .on('add', (filePath) => {
-                console.log(`File added: ${filePath}`);
+                //console.log(`File added: ${filePath}`);
                 attemptTask(() => commandHandler.handleGenerateCommand({
                     input: opts.ymlInput,
                     output: opts.generateOutput,

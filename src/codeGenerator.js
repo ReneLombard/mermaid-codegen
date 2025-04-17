@@ -56,7 +56,7 @@ class CodeGenerator {
         });
 
         mergedYmlList.forEach((mergedClass) => {
-            console.log(`Processing class: ${mergedClass.properties.Name}`);
+            //console.log(`Processing class: ${mergedClass.properties.Name}`);
             if (!mergedClass.properties.Type) {
                 throw new Error('Type is not defined in the YAML file');
             }
@@ -97,7 +97,7 @@ class CodeGenerator {
                     );
 
                     this.fileWriter.write(path.join(outputDirectory, file.subType ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config.extension}` : `${name}.Generated.${templatesPerLanguage.config.extension}`), result);
-                    console.log(`Writing file to: ${path.join(outputDirectory, file.subType ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config.extension}` : `${name}.Generated.${templatesPerLanguage.config.extension}`)}`);
+                    //console.log(`Writing file to: ${path.join(outputDirectory, file.subType ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config.extension}` : `${name}.Generated.${templatesPerLanguage.config.extension}`)}`);
                   });
             });
         });
