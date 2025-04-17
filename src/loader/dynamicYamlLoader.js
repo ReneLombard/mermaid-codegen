@@ -16,7 +16,7 @@ class DynamicYamlLoader {
                     console.log(`Entering subdirectory: ${filePath}`);
                     getAllFiles(filePath, fileList);
                 } else if (file.endsWith('.yml')) {
-                    console.log(`Found YAML file: ${filePath}`);
+                    //console.log(`Found YAML file: ${filePath}`);
                     fileList.push(filePath);
                 }
             });
@@ -30,17 +30,17 @@ class DynamicYamlLoader {
         const mergedClasses = {};
 
         files.forEach(file => {
-            console.log(`Loading YAML file: ${file}`);
+            //console.log(`Loading YAML file: ${file}`);
             const yamlContent = YAML.load(file);
             const className = yamlContent.Name;
-            console.log(`Processing class: ${className}`);
+            //console.log(`Processing class: ${className}`);
 
             if (!mergedClasses[className]) {
-                console.log(`Creating new class entry for: ${className}`);
+                //console.log(`Creating new class entry for: ${className}`);
                 mergedClasses[className] = new DynamicYamlClass();
                 mergedClasses[className].properties = yamlContent;
             } else {
-                console.log(`Merging properties for class: ${className}`);
+                //console.log(`Merging properties for class: ${className}`);
                 mergedClasses[className].properties = this.mergeDeep(mergedClasses[className].properties, yamlContent);
             }
         });
