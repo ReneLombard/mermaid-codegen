@@ -1,6 +1,6 @@
 {
   "name": "@ReneLombard/mermaid-codegen",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "./dist/index.js",
   "bin": {
     "mermaid-codegen": "./dist/index.js"
@@ -9,7 +9,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "transform": "node index.js transform -i ./mermaid.md -o ./output",
+    "transform": "node index.js transform -i ./ -o ./output",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
     "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\"",
     "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates"

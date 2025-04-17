@@ -16,8 +16,8 @@ For this example we will be creating the folder structure as follows:
 
 fleet-management/
 ├── definitions/           # (the intermediate code that is generated)
-│   ├── generated.yml
-│   └── custom.yml
+│   ├── *.Generated.yml
+│   └── .yml <--- Custom definitions
 ├── blue-prints/c#      # (the Handlebars templates)
 │   ├── class.hbs
 │   └── interface.hbs
@@ -68,58 +68,59 @@ Please try to contribute the templates to add more funcitionality in the tool.
 - `blue-prints\c#\config.csharp.json`
 - A set of [handlebars](https://handlebarsjs.com/) templates, such as `class.csharp.hbs` etc are created.
 
-### What does these files mean?
+### Now lets start with creating your first mermaid diagram
 
-#### Language
+For this we will start with simple [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object) classes, describing the entities in the system.
 
-The `language` option refers to the language [handlebars](https://handlebarsjs.com/) templates are defined.
+1. Create a file `docs\detailed-design\fleet-management.md`
 
-::: info
-You can also support multiple languages by providing the base folder path.
-:::
+2. Once created lets start by creating our first model in the document
 
-#### GeneratedDirectory
-
-This generated directory refers to the directory where the code is generated. In this example it will always start by the src/ directory as a starting point.
-
-#### YmlDirectory
-
-The YML Directory refers to the intermediate yml code that will be used for code generation.
-It uses the mermaid class diagrams with the handlebars files to generate some code.
-
-### Now for the `c#\config.csharp.json` file
-
-```json
-{
-  "language": "CSharp",
-  "extension":  "cs",
-  "mappings": {
-    "Scope": {
-      "Public": "public",
-      "Private": "private",
-      "Protected": "protected"
-    },
-    "Type": {
-      "Number": "int", 
-      "String": "string"
+```mermaid
+classDiagram
+namespace Models {
+    class Vehicle {
+        <<class>>
+        +String Make
+        +String Model
+        +String Model
+        +int Year
+        +String Status
     }
-  }
+
+    class Fleet {
+        <<class>>
+        +List~Vehicle~ Vehicles
+    }
+
+    class Driver {
+        <<class>>
+        +String Name
+        +String LicenseNumber
+        +List~Vehicle~ AssignedVehicles
+    }
+
+    class Maintenance {
+        <<class>>
+        +Date ScheduleDate
+        +String ServiceType
+        +String ServiceCenter
+    }
+
+    class Report {
+        <<class>>
+    }
 }
 ```
-The mappings maps the mermaid types and scope to a language specific terminology.
+What you should notice is the annotation in the class, forexample, <<class>>
 
-#### Extension
+This annotation will map to the relevant hbs template. e.g. 
+class.csharp.hbs <--- 
 
-The resulting output file extension e.g.
-`PLACEHOLDER.Generated.cs`
+(hbs) -> It is a handlebars file 
+(csharp) -> For language csharp
+(class) -> for class annotation
 
-#### Mappings
+3. Run the first step in the process of converting the mermaid class to generated (yml) files
 
-Not all languages use the same variable for the same datatype e.g. 
-`Number` in Typescript,
-`int` in C#
-
-This functionality makes it possible to override the properties defined in the YML files for the languages specific types. 
-The elements under the mappings can be extended with any property within the transformed YML files
-
-### TOBECONTINUED
+```cmd
