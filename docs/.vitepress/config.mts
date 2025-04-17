@@ -21,7 +21,6 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Documentation', link: '/pages/overview' },
-      { text: 'Examples', link: '/markdown-examples' }
     ],
     search: {
       provider: 'local'
@@ -32,7 +31,7 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Installation', link: '/pages/getting-started/installation' },
-          { text: 'Scaffolding your application', link: '/pages/getting-started/scaffolding' },
+          { text: 'Getting Started', link: '/pages/getting-started/getting-started' },
           { text: 'Creating your first class diagram', link: '/pages/getting-started/creating-your-first-class-diagram.md' }
         ]
       }
