@@ -24,6 +24,7 @@ It uses the mermaid class diagrams with the handlebars files to generate some co
 {
   "language": "CSharp",
   "extension": "cs",
+  
   "mappings": {
     "Scope": {
       "Public": "public",
