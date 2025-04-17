@@ -9,8 +9,6 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "transform-domain-algorithm": "node index.js transform -i ./gmco/models/domain/session.md -o ./gmco/yaml -n Elekta.Brachy.Gmco",
-    "generate-domain-algorithm": "node index.js generate -i ./gmco/yaml -o ./gmco/code -t ./gmco/templates/C#",
     "transform": "node index.js transform -i ./mermaid.md -o ./output",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
     "watch": "node index.js watch -m \".\\mermaid.md\" -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\"",
