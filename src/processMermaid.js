@@ -166,9 +166,6 @@ class MermaidTransformer {
 
                             const relationDirection = className.Name === id1 ? relationType.type2 : relationType.type1;
 
-                            console.log('relationEntry ', relationEntry);
-
-
                             if (relationDirection === 'composition') {
                                 ns[sourceId].Compositions[relationName] = relationEntry;
                             } else if (relationDirection === 'aggregation') {
