@@ -53,7 +53,7 @@ class MermaidTransformer {
             addMembers: function (className, members) {
                 const currentNamespace = this.currentNamespace || 'global';
                 if (this.namespaces[currentNamespace] && this.namespaces[currentNamespace][className]) {
-                    members.forEach((member) => {
+                    members.reverse().forEach((member) => {
                         const trimmedMember = member.trim();
                         //Method: + methodName(args): returnType
                         const matchMethod = trimmedMember.match(/([+\-#~])\s*([\w<>]+)\s+(\w+)\s*\(([^)]*)\)\s*[;]*([\*\$]*)*?$/);
