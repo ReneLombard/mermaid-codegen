@@ -1,6 +1,6 @@
 {
   "name": "mermaid-codegen",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0",
   "main": "./dist/index.js",
   "bin": {
     "mermaid-codegen": "./dist/index.js"
@@ -22,7 +22,8 @@
     "transform": "node index.js transform -i ./ -o ./output -n HelloWorld",
     "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\" -n HelloWorld",
     "watch": "node index.js watch -m .\\ -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\" -n HelloWorld",
-    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates"
+    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates",
+    "release": "standard-version"
   },
   "license": "MIT",
   "description": "Code generation utilities for Mermaid diagrams",
@@ -47,6 +48,7 @@
   ],
   "devDependencies": {
     "cpx": "^1.2.1",
-    "esbuild": "^0.25.2"
+    "esbuild": "^0.25.2",
+    "standard-version": "^9.5.0"
   }
 }
