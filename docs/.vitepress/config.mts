@@ -3,6 +3,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid';
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
+  base: "/mermaid-codegen/",
   title: "mermaid-code-gen",
   description: "Mermaid to source code",
   appearance: 'dark',
