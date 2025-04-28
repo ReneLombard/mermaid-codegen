@@ -1,12 +1,22 @@
 {
-  "name": "@ReneLombard/mermaid-codegen",
-  "version": "1.0.8",
+  "name": "mermaid-codegen",
+  "version": "1.0.0-alpha.1",
   "main": "./dist/index.js",
   "bin": {
     "mermaid-codegen": "./dist/index.js"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+  "keywords": [
+    "mermaid",
+    "codegen",
+    "diagrams",
+    "javascript"
+  ],
+  "bugs": {
+    "url": "https://github.com/ReneLombard/mermaid-codegen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReneLombard/mermaid-codegen.git"
   },
   "scripts": {
     "transform": "node index.js transform -i ./ -o ./output -n HelloWorld",
@@ -14,10 +24,8 @@
     "watch": "node index.js watch -m .\\ -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\" -n HelloWorld",
     "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates"
   },
-  "keywords": [],
-  "author": "",
   "license": "MIT",
-  "description": "",
+  "description": "Code generation utilities for Mermaid diagrams",
   "bundleDependencies": [
     "chokidar",
     "commander",
