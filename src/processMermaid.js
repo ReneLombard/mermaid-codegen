@@ -74,7 +74,7 @@ class MermaidTransformer {
                         }
                     }
                     
-                    this.namespaces[currentNamespace][className].Options.unshift(option);
+                    this.namespaces[currentNamespace][className].Options.push(option);
                 }
                 else if (matchMethod) {
                     
