@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: cd src && npm ci
+      - run: cd src && npm i
 
   version-bump:
     needs: build
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: cd src && npm ci
+      - run: cd src && npm i
       - name: Bump version and generate changelog
         run: |
           cd src
