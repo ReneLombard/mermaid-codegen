@@ -4,16 +4,13 @@ const path = require('path');
 const { DynamicYamlClass } = require('../dynamicYamlClass');
 class DynamicYamlLoader {
     static loadAndMergeYamlFiles(directory) {
-        console.log(`Loading and merging YAML files from directory: ${directory}`);
 
         function getAllFiles(dir, fileList = []) {
-            console.log(`Reading directory: ${dir}`);
             const files = fs.readdirSync(dir);
 
             files.forEach(file => {
                 const filePath = path.join(dir, file);
                 if (fs.statSync(filePath).isDirectory()) {
-                    console.log(`Entering subdirectory: ${filePath}`);
                     getAllFiles(filePath, fileList);
                 } else if (file.endsWith('.yml')) {
                     //console.log(`Found YAML file: ${filePath}`);
@@ -45,7 +42,6 @@ class DynamicYamlLoader {
             }
         });
 
-        console.log(`Merging completed. Total classes: ${Object.keys(mergedClasses).length}`);
         return Object.values(mergedClasses);
     }
 

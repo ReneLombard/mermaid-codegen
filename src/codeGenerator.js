@@ -126,55 +126,64 @@ class CodeGenerator {
     }
 
     processData(yamlObject, mappings) {
-        const processedData = {};
-      
-        Object.entries(yamlObject).forEach(([key, value]) => {
-            
-            if (Array.isArray(value)) {
-                // Process each element of the array
-                processedData[key] = value.map((item) => {
+      const processedData = {};
+  
+      // Iterate over each key-value in the input YAML object
+      Object.entries(yamlObject).forEach(([key, value]) => {
+  
+          if (Array.isArray(value)) {
+              // If the value is an array, map each element
+              processedData[key] = value.map((item) => {
                   if (typeof item === 'object') {
-                  return this.processData(item, mappings);
+                      // Recurse into nested objects
+                      return this.processData(item, mappings);
                   } else {
-                  return mappings[key]
-                    ? this.applyReplacements(item, mappings, key)
-                    : item;
+                      // Apply mappings to each primitive item (e.g., list of strings)
+                      if (mappings[key]) {
+                          return this.applyReplacements(item, mappings, key);
+                      } else {
+                          return item;
+                      }
                   }
-                });
-              } else if (typeof value === 'object') {
-                // It's an object (and not an array), so just recurse
-                processedData[key] = this.processData(value, mappings);
+              });
+  
+          } else if (typeof value === 'object') {
+              // If the value is an object (e.g., nested structure), recurse
+              processedData[key] = this.processData(value, mappings);
+  
+          } else {
+              // The value is a primitive (string, number, etc.)
+              if (mappings[key]) {
+                  const mappingDict = mappings[key];
+                  let replacedValue = value;
+  
+  
+                  // 1) Check for exact match
+                  if (mappingDict[replacedValue] !== undefined) {
+                      replacedValue = mappingDict[replacedValue];
+                  }
+  
+                  // 2) Try all REGEX mappings
+                  for (const [patternKey, patternReplace] of Object.entries(mappingDict)) {
+                      if (patternKey.startsWith('REGEX:')) {
+                          const rawPattern = patternKey.slice('REGEX:'.length);
+                          const regex = new RegExp(rawPattern);
+                          replacedValue = applyRegexRecursively(replacedValue, regex, patternReplace);
+                      }
+                  }
+  
+                  processedData[key] = replacedValue;
+  
               } else {
-            
-            if (mappings[key]) {
-              const mappingDict = mappings[key];
-              let replacedValue = value;
-      
-              // 1) Exact match check
-              if (mappingDict[replacedValue] !== undefined) {
-                replacedValue = mappingDict[replacedValue];
+                  // No mapping for this key, keep original
+                  processedData[key] = value;
               }
-      
-              // 2) Regex replacements (try them all)
-              for (const [patternKey, patternReplace] of Object.entries(mappingDict)) {
-                if (patternKey.startsWith('REGEX:')) {
-                  const rawPattern = patternKey.slice('REGEX:'.length);
-                  const regex = new RegExp(rawPattern);
-      
-                  // Keep applying the regex until no change
-                  replacedValue = applyRegexRecursively(replacedValue, regex, patternReplace);
-                }
-              }
-      
-              processedData[key] = replacedValue;
-            } else {
-              processedData[key] = value;
-            }
           }
-        });
-      
-        return processedData;
-      }
+      });
+  
+      return processedData;
+  }
+  
     }
       
       // Helper function

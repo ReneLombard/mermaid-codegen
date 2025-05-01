@@ -104,7 +104,7 @@ namespace Models {
 
     class Maintenance {
         <<class>>
-        +Date ScheduleDate
+        +DateTime ScheduleDate
         +String ServiceType
         +String ServiceCenter
     }
@@ -123,7 +123,7 @@ class.csharp.hbs
 
 (hbs) -> It is a handlebars file 
 (csharp) -> For language csharp
-(class) -> for class annotation
+(class) -> for mermaid class annotation
 
 3. Run the first step in the process of converting the mermaid class to generated (yml) files
 
@@ -133,7 +133,7 @@ mermaid-codegen transform -i .\docs\detailed-design -o definitions
 
 If all is good you will find the following files
 
-
+```
 fleet-management/
 └── definitions/           # (the intermediate code that is generated)
     ├── Driver.Generated.yml
@@ -142,7 +142,7 @@ fleet-management/
     ├── Report.Generated.yml
     ├── Driver.Generated.yml
     └── Vehicle.Generated.yml 
-
+```
 These files provide an yml representation of the `classes`, 
 
 
@@ -166,7 +166,11 @@ Name: Vehicle
 Namespace: Models
 Type: class
 Attributes:
-  Status:
+  Make:
+    Type: String
+    IsSystemType: true
+    Scope: Public
+  Model:
     Type: String
     IsSystemType: true
     Scope: Public
@@ -174,20 +178,15 @@ Attributes:
     Type: int
     IsSystemType: false
     Scope: Public
-  Model:
+  Status:
     Type: String
     IsSystemType: true
     Scope: Public
-  Make:
-    Type: String
-    IsSystemType: true
-    Scope: Public
-
 ```
 
-You could now extend the default mermaid classes with application specific fields (Think of max/min range attributes etc.) and add an additional file to the folder, without the Generated postfix to add additional info
 
 4. You can now generate the code from the yml files like this:
+
 
 ```cmd
 mermaid-codegen generate -i definitions -o src -t blue-prints\C#
@@ -270,6 +269,21 @@ Attributes:
 
 ```
 
+
+The folder should contain the following files now:
+```
+fleet-management/
+└── definitions/           # (the intermediate code that is generated)
+    ├── Driver.Generated.yml
+    ├── Fleet.Generated.yml
+    ├── Maintenance.Generated.yml
+    ├── Report.Generated.yml
+    ├── Driver.Generated.yml
+    ├── Vehicle.yml <--- New custom file
+    └── Vehicle.Generated.yml
+```
+
+
 The above yml code will then result in the following *DataAnnotations* in C#
 
 ```csharp
@@ -293,3 +307,5 @@ public partial class Vehicle
 
 }
 ```
+
+Next up, we will configure an endpoint and services

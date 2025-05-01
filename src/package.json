@@ -19,8 +19,8 @@
     "url": "git+https://github.com/ReneLombard/mermaid-codegen.git"
   },
   "scripts": {
-    "transform": "node index.js transform -i ./ -o ./output -n HelloWorld",
-    "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\" -n HelloWorld",
+    "transform": "node index.js transform -i ./mermaid.md -o ./output -n HelloWorld",
+    "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
     "watch": "node index.js watch -m .\\ -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\" -n HelloWorld",
     "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates",
     "release": "standard-version"

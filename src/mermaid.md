@@ -30,79 +30,30 @@ The logical view of the Vehicle Management System (VMS) includes the following c
 
 ```mermaid
 classDiagram
-namespace HelloWorld.Models {
+
+namespace Models {
     class Vehicle {
         <<class>>
         +String Make
         +String Model
-        +String Model
         +int Year
         +String Status
     }
+}
 
-    class Fleet {
-        <<class>>
-        +List~Vehicle~ Vehicles
-    }
-
-    class Driver {
-        <<class>>
-        +String Name
-        +String LicenseNumber
-        +List~Vehicle~ AssignedVehicles
-    }
-
-    class Maintenance {
-        <<class>>
-        +Date ScheduleDate
-        +String ServiceType
-        +String ServiceCenter
-    }
-
-    class Report {
-        <<class>>
+namespace Controllers {
+    class VehiclesController {
+        <<endpoint>>
+        +GetVehicleByMake(string make): Task~ActionResult~Vehicle~~
+        +GetAllVehicles(): Task~ActionResult~List~Vehicle~~~
+        +GetVehicleById(int id): Task~ActionResult~Vehicle~~
+        +AddVehicle(Vehicle vehicle): Task~ActionResult~Vehicle~~
+        +UpdateVehicle(int id, Vehicle vehicle): Task~IActionResult~
+        +DeleteVehicle(int id): Task~IActionResult~
     }
 }
-namespace HelloWorld.Repository {
-    class VehicleRepository {
-        <<class>>
-        +Task AddVehicleAsync()
-        +Task RemoveVehicleAsync()
-        +Task UpdateVehicleAsync()
-        +Task GetVehicleByIdAsync()
-    }
 
-    class FleetRepository {
-        <<class>>
-        +Task AddFleetAsync()
-        +Task RemoveFleetAsync()
-        +Task UpdateFleetAsync()
-        +Task GetFleetByIdAsync()
-    }
+VehiclesController --> Vehicle : returns
 
-    class DriverRepository {
-        <<class>>
-        +Task AddDriverAsync()
-        +Task RemoveDriverAsync()
-        +Task UpdateDriverAsync()
-        +Task GetDriverByIdAsync()
-    }
-
-    class MaintenanceRepository {
-        <<class>>
-        +Task AddMaintenanceAsync()
-        +Task RemoveMaintenanceAsync()
-        +Task UpdateMaintenanceAsync()
-        +Task GetMaintenanceByIdAsync()
-    }
-
-    class ReportRepository {
-        <<class>>
-        +Task AddReportAsync()
-        +Task RemoveReportAsync()
-        +Task UpdateReportAsync()
-        +Task GetReportByIdAsyncs()
-    }
-}
 ```
 ## Dynamic View

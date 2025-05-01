@@ -56,7 +56,7 @@ class MermaidTransformer {
                     members.reverse().forEach((member) => {
                         const trimmedMember = member.trim();
                         //Method: + methodName(args): returnType
-                        const matchMethod = trimmedMember.match(/([+\-#~])\s*([\w<>]+)\s+(\w+)\s*\(([^)]*)\)\s*[;]*([\*\$]*)*?$/);
+                        const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
 
                 const matchAttribute = trimmedMember.match(/([+\-#~])\s*([\w<>~?[\].]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/);
                 const matchType = trimmedMember.match(/<<(.*?)>>/);
@@ -78,14 +78,14 @@ class MermaidTransformer {
                 }
                 else if (matchMethod) {
                     
-                    const [_, scopeSymbol, type, name, methodArgs] = matchMethod;
+                    const [_, scopeSymbol, name, methodArgs, returnType] = matchMethod;
                     const scopeMap = { '+': 'Public', '-': 'Private', '#': 'Protected', '~': 'Package' };
                     const scope = scopeMap[scopeSymbol] || 'Public';
 
                             if (methodArgs) {
                                 // Add method
                                 this.namespaces[currentNamespace][className].Methods[name] = {
-                                    ReturnType: type,
+                                    Type: returnType,
                                     Scope: scope,
                                     Classifiers: '',
                                     Arguments: methodArgs.split(',').map((arg) => {
@@ -99,7 +99,7 @@ class MermaidTransformer {
                             }
                             else {
                                 this.namespaces[currentNamespace][className].Methods[name] = {
-                                    ReturnType: type,
+                                    Type: returnType,
                                     Scope: scope,
                                     Classifiers: ''
                                 };

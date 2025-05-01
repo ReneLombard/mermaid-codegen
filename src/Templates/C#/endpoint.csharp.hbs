@@ -59,7 +59,7 @@ public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each
         [HttpGet("{{@key}}")] {{!-- Default to GET if HttpMethod is not specified --}}
         {{/if}}
         {{!-- The public endpoint method (with a basic body) --}}
-        {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} IActionResult {{@key}}({{#if this.Arguments}}{{#each this.Arguments}}[From{{#if (isEq ../this.HttpMethod "POST")}}Body{{else if (isEq ../this.HttpMethod "DELETE")}}Query{{else}}Query{{/if}}] {{this.Type}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}{{/if}})
+        {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} {{Type}} {{@key}}({{#if this.Arguments}}{{#each this.Arguments}}[From{{#if (isEq ../this.HttpMethod "POST")}}Body{{else if (isEq ../this.HttpMethod "DELETE")}}Query{{else}}Query{{/if}}] {{this.Type}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}{{/if}})
         {
             return On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}});
         }
