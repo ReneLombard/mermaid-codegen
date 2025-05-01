@@ -32,10 +32,12 @@ jobs:
         run: |
           cd src
           npx standard-version
+      - name: Configure Git Identity (ensure it is applied)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
       - name: Commit and push version bump
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/package.json src/package-lock.json src/CHANGELOG.md
           git commit -m "chore(release): bump version [skip ci]"
           git push origin main
@@ -54,19 +56,7 @@ jobs:
       - name: Publish to npm
         run: cd src && npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  create-release:
-    needs: version-bump
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: src/CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.PUBLISHING_TOKEN }}
 
   deploy-docs:
     needs: build
