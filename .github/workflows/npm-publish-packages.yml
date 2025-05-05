@@ -38,12 +38,13 @@ jobs:
         run: |
             cd src
             npx standard-version
+            git push --follow-tags origin main 
       
-      - name: Commit and push version bump
-        run: |
-          git add src/package.json src/CHANGELOG.md
-          git commit -m "chore(release): bump version [skip ci]"
-          git push origin main
+      # - name: Commit and push version bump
+      #   run: |
+      #     git add *
+      #     git commit -m "chore(release): bump version [skip ci]"
+      #     git push origin main
 
   publish-npm:
     needs: version-bump
