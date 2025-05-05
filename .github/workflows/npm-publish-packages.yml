@@ -28,14 +28,17 @@ jobs:
         with:
           node-version: 20
       - run: cd src && npm i
-      - name: Bump version and generate changelog
-        run: |
-          cd src
-          npx standard-version
+      
       - name: Configure Git Identity (ensure it is applied)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Bump version and generate changelog
+        run: |
+            cd src
+            npx standard-version
+      
       - name: Commit and push version bump
         run: |
           git add src/package.json src/package-lock.json src/CHANGELOG.md
