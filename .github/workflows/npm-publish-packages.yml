@@ -41,7 +41,7 @@ jobs:
       
       - name: Commit and push version bump
         run: |
-          git add src/package.json src/package-lock.json src/CHANGELOG.md
+          git add src/package.json src/CHANGELOG.md
           git commit -m "chore(release): bump version [skip ci]"
           git push origin main
 
