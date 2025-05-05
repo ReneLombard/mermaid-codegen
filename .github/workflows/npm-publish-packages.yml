@@ -39,7 +39,7 @@ jobs:
         run: |
             cd src
             npx standard-version
-            git push --follow-tags origin main && npm publish
+            git push --follow-tags origin main && npm run build && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PUBLISHING_TOKEN }}
   deploy-docs:
