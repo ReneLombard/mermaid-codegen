@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org/
       - run: cd src && npm i
       
       - name: Configure Git Identity (ensure it is applied)
@@ -38,30 +39,9 @@ jobs:
         run: |
             cd src
             npx standard-version
-            git push --follow-tags origin main 
-      
-      # - name: Commit and push version bump
-      #   run: |
-      #     git add *
-      #     git commit -m "chore(release): bump version [skip ci]"
-      #     git push origin main
-
-  publish-npm:
-    needs: version-bump
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: cd src && npm i
-      - run: cd src && npm run build
-      - name: Publish to npm
-        run: cd src && npm publish
+            git push --follow-tags origin main && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PUBLISHING_TOKEN }}
-
   deploy-docs:
     needs: build
     runs-on: ubuntu-latest
