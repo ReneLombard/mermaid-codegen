@@ -58,7 +58,7 @@ class MermaidTransformer {
                         //Method: + methodName(args): returnType
                         const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
 
-                const matchAttribute = trimmedMember.match(/([+\-#~])\s*([\w<>~?[\].]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/);
+                const matchAttribute = trimmedMember.match(/([+\-#~])\s*([\w<>~,\[\]\s\.]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/);
                 const matchType = trimmedMember.match(/<<(.*?)>>/);
                 const matchOption = trimmedMember.match(/^(\w+)(?:\s*=\s*(\w+))?$/);
 
