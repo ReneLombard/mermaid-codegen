@@ -1,4 +1,6 @@
-﻿.npmrc
+﻿src/build/*
+
+.npmrc
 classDiagramParser.js
 package-lock.json
 *.jison
