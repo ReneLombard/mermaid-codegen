@@ -25,13 +25,13 @@ interface ParserYY {
     };
 }
 
-interface Parser {
+interface InternalParser {
     yy: ParserYY;
     parse: (input: string) => void;
 }
 
 export class MermaidClassDiagramParser {
-    private readonly parser: Parser;
+    private readonly parser: InternalParser;
 
     constructor() {
         this.parser = classDiagramParser.parser;
@@ -39,19 +39,15 @@ export class MermaidClassDiagramParser {
     }
 
     //public parse(mermaidContent: string): { [namespace: string]: { [className: string]: ClassData } } {
-    public parse(mermaidContent: string):void{
-         // Reset namespaces before parsing
-        //this.parser.yy.namespaces = {};
-        
+    public parse(mermaidContent: string):void{        
         try {
             this.parser.parse(mermaidContent);
-            //return this.parser.yy.namespaces;
         } catch (error) {
             throw new Error(`Error parsing Mermaid content: ${(error as Error).message}`);
         }
     }
 
-    public getNamespaces(): { [namespace: string]: { [className: string]: ClassData } } {
+    public getParseOutcome(): { [namespace: string]: { [className: string]: ClassData } } {
         return this.parser.yy.namespaces;
     }
 

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { MermaidClassDiagramParser } from './mermaidParser';
+import { MermaidClassDiagramParser } from './mermaidClassDiagramParser';
 
 // Import js-yaml using require since it's a JavaScript package
 const yaml = require('js-yaml');
@@ -91,7 +91,7 @@ export class MermaidTransformer {
         // After parsing all blocks, generate YAML files
         const outputDir = outDirs.length ? outDirs[0] : this.outputDir;
     
-        for (const [namespace, classes] of Object.entries(this.parser.getNamespaces())) {
+        for (const [namespace, classes] of Object.entries(this.parser.getParseOutcome())) {
             const namespaceDir = this.skipNamespace 
                 ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/')) 
                 : path.join(outputDir, namespace.replace(/\./g, '/'));
