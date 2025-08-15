@@ -10,7 +10,7 @@ const jison = require('jison');
 const jisonFileUrl: string = 'https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/diagrams/class/parser/classDiagram.jison';
 
 // Define the local path where the Jison file will be saved
-const jisonFilePath: string = path.join(__dirname, 'classDiagram.jison');
+const jisonFilePath: string = path.join(__dirname, 'dist', 'classDiagram.jison');
 
 // Step 1: Download the Jison file
 console.log('Starting download of Jison file from:', jisonFileUrl);
@@ -55,7 +55,7 @@ function processJisonFile(): void {
         console.log('Parser source code generated successfully.');
 
         // Step 5: Write the parser source code to an intermediate file
-        const outputFilePath: string = path.join(__dirname, 'classDiagramParser.js');
+        const outputFilePath: string = path.join(__dirname, 'dist', 'classDiagramParser.js');
         console.log('Writing parser source code to:', outputFilePath);
         fs.writeFileSync(outputFilePath, parserSource);
 

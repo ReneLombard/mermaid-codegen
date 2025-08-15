@@ -12,7 +12,7 @@ import { TransformOptions } from './types/transformOptions';
 import { Stats } from 'fs';
 
 // Import package.json (you'll need to create this for the TypeScript project)
-const pkg = require('./package.json');
+const pkg = require(path.join(__dirname, '../package.json'));
 
 interface InitializeOptions {
     language: string;
