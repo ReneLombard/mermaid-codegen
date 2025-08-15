@@ -1,14 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
-import * as YAML from 'yamljs';
 import { DynamicYamlLoader } from './loader/dynamicYamlLoader';
 import { FileProcessor } from './processor/fileProcessor';
 import { DynamicYamlClass } from './dynamicYamlClass';
 import { 
     GenerateOptions, 
-    FileReader, 
-    FileWriter, 
     NamespaceConfiguration, 
     Template, 
     LanguageTemplates, 

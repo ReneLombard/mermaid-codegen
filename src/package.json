@@ -11,8 +11,8 @@
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node index.ts",
     "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output -n HelloWorld",
-    "generate": "npm run build && node dist/index.js generate -i \"../output\" -o \"../output/code\" -t \"./Templates/C#\"",
-    "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output\" -o \"../output/code\" --templates \"./Templates/C#\" -n HelloWorld"
+    "generate": "npm run build && node dist/index.js generate -i \"../output\" -o \"../output/code\" -t \"../Templates/C#\"",
+    "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output\" -o \"../output/code\" --templates \"../Templates/C#\" -n HelloWorld"
   },
   "dependencies": {
     "chokidar": "^4.0.3",

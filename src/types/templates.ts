@@ -36,12 +36,3 @@ export interface GenerateOptions {
     output: string;
     templates: string;
 }
-
-export interface FileReader {
-    readFile(path: string): Buffer;
-    fileExists(path: string): boolean;
-}
-
-export interface FileWriter {
-    write(path: string, content: string): void;
-}
