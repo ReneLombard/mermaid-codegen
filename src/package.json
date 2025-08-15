@@ -1,4 +1,19 @@
 {
+  "name": "mermaid-codegen-ts",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "bin": {
+    "mermaid-codegen": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "npm run process-jison && tsc",
+    "process-jison": "node -r ts-node/register processJison.ts",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node index.ts",
+    "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ./output -n HelloWorld",
+    "generate": "npm run build && node dist/index.js generate -i \"./output\" -o \"./output/code\" -t \"./Templates/C#\"",
+    "watch": "npm run build && node dist/index.js watch -m ./ -y \"./output\" -o \"./output/code\" --templates \"./Templates/C#\" -n HelloWorld"
+  },
   "dependencies": {
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
@@ -13,6 +28,7 @@
     "@types/handlebars": "^4.0.40",
     "@types/node": "^24.1.0",
     "@types/yamljs": "^0.2.34",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }
