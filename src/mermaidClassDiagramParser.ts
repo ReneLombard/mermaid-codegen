@@ -52,7 +52,7 @@ export class MermaidClassDiagramParser {
     }
 
     initializeParser() {
-                this.parser.yy = {
+        this.parser.yy = {
             namespaces: {},
 
             addNamespace: function (namespace: string): void {
