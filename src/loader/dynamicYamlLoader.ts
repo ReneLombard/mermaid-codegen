@@ -1,6 +1,6 @@
-import * as YAML from 'yamljs';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as YAML from 'yamljs';
 import { DynamicYamlClass } from '../dynamicYamlClass';
 
 interface YamlContent {
@@ -17,7 +17,7 @@ export class DynamicYamlLoader {
         function getAllFiles(dir: string, fileList: string[] = []): string[] {
             const files = fs.readdirSync(dir);
 
-            files.forEach(file => {
+            files.forEach((file) => {
                 const filePath = path.join(dir, file);
                 if (fs.statSync(filePath).isDirectory()) {
                     getAllFiles(filePath, fileList);
@@ -35,7 +35,7 @@ export class DynamicYamlLoader {
 
         const mergedClasses: MergedClasses = {};
 
-        files.forEach(file => {
+        files.forEach((file) => {
             //console.log(`Loading YAML file: ${file}`);
             const yamlContent: YamlContent = YAML.load(file);
             const className = yamlContent.Name;
@@ -58,7 +58,10 @@ export class DynamicYamlLoader {
     static mergeDeep<T extends Record<string, any>>(target: T, source: Partial<T>): T {
         for (const key in source) {
             if ((source[key] as any) instanceof Object && key in target) {
-                Object.assign((source[key] as any), this.mergeDeep(target[key] as Record<string, any>, source[key] as Record<string, any>));
+                Object.assign(
+                    source[key] as any,
+                    this.mergeDeep(target[key] as Record<string, any>, source[key] as Record<string, any>),
+                );
             }
         }
         Object.assign(target || {}, source);

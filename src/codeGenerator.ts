@@ -1,16 +1,16 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import * as Handlebars from 'handlebars';
+import * as path from 'path';
+import { DynamicYamlClass } from './dynamicYamlClass';
 import { DynamicYamlLoader } from './loader/dynamicYamlLoader';
 import { FileProcessor } from './processor/fileProcessor';
-import { DynamicYamlClass } from './dynamicYamlClass';
-import { 
-    GenerateOptions, 
-    NamespaceConfiguration, 
-    Template, 
-    LanguageTemplates, 
-    Templates, 
-    Mappings 
+import {
+    GenerateOptions,
+    LanguageTemplates,
+    Mappings,
+    NamespaceConfiguration,
+    Template,
+    Templates,
 } from './types/templates';
 
 export class CodeGenerator {
@@ -22,26 +22,26 @@ export class CodeGenerator {
         this.input = opts.input;
         this.output = opts.output;
         this.templates = opts.templates;
-        
+
         if (!fs.existsSync(this.input) && !fs.existsSync(path.join(__dirname, this.input))) {
-            console.log("Error: Input file directory does not exist");
+            console.log('Error: Input file directory does not exist');
             return;
         }
         if (!fs.existsSync(opts.templates)) {
-            console.log("Error: Templates directory does not exist");
+            console.log('Error: Templates directory does not exist');
             return;
         }
         if (!fs.existsSync(opts.output)) {
-            console.log("Error: Output directory does not exist");
+            console.log('Error: Output directory does not exist');
             return;
         }
-        
-        const inputFileDirectoryNormalized: string = fs.existsSync(this.input) 
-            ? this.input 
+
+        const inputFileDirectoryNormalized: string = fs.existsSync(this.input)
+            ? this.input
             : path.join(__dirname, this.input);
-        
+
         const mergedYmlList: DynamicYamlClass[] = DynamicYamlLoader.loadAndMergeYamlFiles(inputFileDirectoryNormalized);
-        
+
         const templates: Templates = FileProcessor.processFiles(opts.templates);
 
         // Register Handlebars helpers
@@ -62,7 +62,7 @@ export class CodeGenerator {
             },
             or(): boolean {
                 return Array.prototype.slice.call(arguments, 0, -1).some(Boolean);
-            }
+            },
         });
 
         mergedYmlList.forEach((mergedClass: DynamicYamlClass) => {
@@ -87,11 +87,11 @@ export class CodeGenerator {
                 }
 
                 const localizedYml: any = this.processData(elements, templatesPerLanguage.config.mappings);
-            
-                const files: Template[] = templatesPerLanguage.templates.filter((file: Template) => 
-                    file.type.toLowerCase() === templateType.toLowerCase()
+
+                const files: Template[] = templatesPerLanguage.templates.filter(
+                    (file: Template) => file.type.toLowerCase() === templateType.toLowerCase(),
                 );
-          
+
                 files.forEach((file: Template) => {
                     const jsonString: string = JSON.stringify(localizedYml);
                     const jsonData: any = JSON.parse(jsonString);
@@ -102,11 +102,11 @@ export class CodeGenerator {
                     const outputDirectory: string = this.determineOutputDirectory(
                         localizedYml.Namespace || '',
                         this.output,
-                        templatesPerLanguage.config?.namespace
+                        templatesPerLanguage.config?.namespace,
                     );
 
-                    const fileName: string = file.subType 
-                        ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config?.extension}` 
+                    const fileName: string = file.subType
+                        ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config?.extension}`
                         : `${name}.Generated.${templatesPerLanguage.config?.extension}`;
 
                     fs.writeFileSync(path.join(outputDirectory, fileName), result);
@@ -117,32 +117,34 @@ export class CodeGenerator {
     }
 
     private determineOutputDirectory(
-        namespace: string, 
-        configuredOutputDirectory: string, 
-        namespaceConfiguration?: NamespaceConfiguration
+        namespace: string,
+        configuredOutputDirectory: string,
+        namespaceConfiguration?: NamespaceConfiguration,
     ): string {
         if (!namespace) {
             return configuredOutputDirectory;
         }
-        
-        if (namespaceConfiguration && 
-            namespaceConfiguration.namespaceFolderMap && 
-            namespaceConfiguration.namespaceFolderMap[namespace]) {
+
+        if (
+            namespaceConfiguration &&
+            namespaceConfiguration.namespaceFolderMap &&
+            namespaceConfiguration.namespaceFolderMap[namespace]
+        ) {
             const outputPath: string = path.join(
-                configuredOutputDirectory, 
-                namespaceConfiguration.namespaceFolderMap[namespace]
+                configuredOutputDirectory,
+                namespaceConfiguration.namespaceFolderMap[namespace],
             );
             fs.mkdirSync(outputPath, { recursive: true });
             return outputPath;
         }
 
         let trimmedNamespace: string = namespace;
-        if (namespaceConfiguration && 
-            namespaceConfiguration.prefixToIgnore && 
-            namespace.startsWith(namespaceConfiguration.prefixToIgnore)) {
-            trimmedNamespace = namespace
-                .substring(namespaceConfiguration.prefixToIgnore.length)
-                .replace(/^\./, ''); // Replace trimStart('.') with proper regex
+        if (
+            namespaceConfiguration &&
+            namespaceConfiguration.prefixToIgnore &&
+            namespace.startsWith(namespaceConfiguration.prefixToIgnore)
+        ) {
+            trimmedNamespace = namespace.substring(namespaceConfiguration.prefixToIgnore.length).replace(/^\./, ''); // Replace trimStart('.') with proper regex
         }
 
         const namespaceParts: string[] = trimmedNamespace.split('.');
@@ -172,11 +174,9 @@ export class CodeGenerator {
                         }
                     }
                 });
-
             } else if (typeof value === 'object') {
                 // If the value is an object (e.g., nested structure), recurse
                 processedData[key] = this.processData(value, mappings);
-
             } else {
                 // The value is a primitive (string, number, etc.)
                 if (mappings[key]) {
@@ -198,7 +198,6 @@ export class CodeGenerator {
                     }
 
                     processedData[key] = replacedValue;
-
                 } else {
                     // No mapping for this key, keep original
                     processedData[key] = value;

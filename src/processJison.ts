@@ -1,13 +1,14 @@
 import * as fs from 'fs';
-import * as path from 'path';
-import * as https from 'https';
 import { IncomingMessage } from 'http';
+import * as https from 'https';
+import * as path from 'path';
 
 // Import jison using require since it's a JavaScript package
 const jison = require('jison');
 
 // URL of the Jison file to be downloaded
-const jisonFileUrl: string = 'https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/diagrams/class/parser/classDiagram.jison';
+const jisonFileUrl: string =
+    'https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/diagrams/class/parser/classDiagram.jison';
 
 // Define the local path where the Jison file will be saved
 const jisonFilePath: string = path.join(__dirname, 'dist', 'classDiagram.jison');
@@ -15,26 +16,28 @@ const jisonFilePath: string = path.join(__dirname, 'dist', 'classDiagram.jison')
 // Step 1: Download the Jison file
 console.log('Starting download of Jison file from:', jisonFileUrl);
 
-https.get(jisonFileUrl, (response: IncomingMessage) => {
-    if (response.statusCode === 200) {
-        console.log('Download successful. Saving file to:', jisonFilePath);
+https
+    .get(jisonFileUrl, (response: IncomingMessage) => {
+        if (response.statusCode === 200) {
+            console.log('Download successful. Saving file to:', jisonFilePath);
 
-        const file: fs.WriteStream = fs.createWriteStream(jisonFilePath);
-        response.pipe(file);
+            const file: fs.WriteStream = fs.createWriteStream(jisonFilePath);
+            response.pipe(file);
 
-        file.on('finish', () => {
-            file.close();
-            console.log('Downloaded classDiagram.jison to:', jisonFilePath);
+            file.on('finish', () => {
+                file.close();
+                console.log('Downloaded classDiagram.jison to:', jisonFilePath);
 
-            // Step 2: Process the downloaded Jison file
-            processJisonFile();
-        });
-    } else {
-        console.error('Failed to download classDiagram.jison. Status code:', response.statusCode);
-    }
-}).on('error', (err: Error) => {
-    console.error('Error downloading classDiagram.jison:', err.message);
-});
+                // Step 2: Process the downloaded Jison file
+                processJisonFile();
+            });
+        } else {
+            console.error('Failed to download classDiagram.jison. Status code:', response.statusCode);
+        }
+    })
+    .on('error', (err: Error) => {
+        console.error('Error downloading classDiagram.jison:', err.message);
+    });
 
 // Function to process the Jison file
 function processJisonFile(): void {

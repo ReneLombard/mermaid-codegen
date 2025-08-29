@@ -1,7 +1,7 @@
-import { InitializeService } from './initializeService';
-import { TransformManager } from './transformManager';
 import { CodeGenerator } from './codeGenerator';
+import { InitializeService } from './initializeService';
 import { ListLanguagesService } from './listLanguagesService';
+import { TransformManager } from './transformManager';
 import { TransformOptions } from './types/transformOptions';
 
 interface InitializeOptions {
@@ -25,7 +25,7 @@ export class CommandHandler {
         initializeService: InitializeService,
         transformManager: TransformManager,
         codeGenerator: CodeGenerator,
-        listLanguagesService: ListLanguagesService
+        listLanguagesService: ListLanguagesService,
     ) {
         this.initializeService = initializeService;
         this.transformManager = transformManager;

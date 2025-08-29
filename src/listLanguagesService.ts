@@ -7,9 +7,9 @@ export class ListLanguagesService {
         console.log('Available languages: ');
         // List the folders in the templates directory (each folder represents a language)
         const templatesDir: string = path.join(__dirname, 'templates');
-        const languages: string[] = fs.readdirSync(templatesDir).filter((file: string) => 
-            fs.statSync(path.join(templatesDir, file)).isDirectory()
-        );
+        const languages: string[] = fs
+            .readdirSync(templatesDir)
+            .filter((file: string) => fs.statSync(path.join(templatesDir, file)).isDirectory());
 
         languages.forEach((language: string) => {
             console.log(language);

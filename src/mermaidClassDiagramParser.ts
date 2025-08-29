@@ -31,212 +31,249 @@ interface InternalParser {
 }
 
 export class MermaidClassDiagramParser {
-    private readonly parser: InternalParser;
+    private readonly internalParser: InternalParser;
+    private namespaces: {
+        [namespace: string]: { [className: string]: ClassData };
+    } = {};
+    private currentNamespace: string = '';
 
     constructor() {
-        this.parser = classDiagramParser.parser;
+        this.internalParser = classDiagramParser.parser;
         this.initializeParser();
     }
 
-    //public parse(mermaidContent: string): { [namespace: string]: { [className: string]: ClassData } } {
-    public parse(mermaidContent: string):void{        
+    public parse(mermaidContent: string): void {
         try {
-            this.parser.parse(mermaidContent);
+            this.internalParser.parse(mermaidContent);
         } catch (error) {
             throw new Error(`Error parsing Mermaid content: ${(error as Error).message}`);
         }
     }
 
-    public getParseOutcome(): { [namespace: string]: { [className: string]: ClassData } } {
-        return this.parser.yy.namespaces;
+    public getParseOutcome(): {
+        [namespace: string]: { [className: string]: ClassData };
+    } {
+        return this.internalParser.yy.namespaces;
+    }
+
+    addNamespace(namespace: string) {
+        if (!this.namespaces[namespace]) {
+            this.namespaces[namespace] = {};
+        }
+        this.currentNamespace = namespace; // Set the current namespace
+    }
+
+    addClass(className: string) {
+        const currentNamespace = this.currentNamespace || 'global';
+        if (!this.namespaces[currentNamespace]) {
+            this.namespaces[currentNamespace] = {};
+        }
+        if (!this.namespaces[currentNamespace][className]) {
+            this.namespaces[currentNamespace][className] = {
+                Name: className,
+                Namespace: currentNamespace,
+                Type: 'Class',
+                Attributes: {},
+                Methods: {},
+                Dependencies: {},
+                Compositions: {},
+                Aggregations: {},
+                Associations: {},
+                Realizations: {},
+                Implementations: {},
+                Inheritance: {},
+                Lines: {},
+                DashedLinks: {},
+                Options: [],
+            };
+        }
+    }
+
+    addMembers(className: string, members: string[]) {
+        const currentNamespace = this.currentNamespace || 'global';
+        if (this.namespaces[currentNamespace]?.[className]) {
+            members.reverse();
+            members.forEach((member: string) => {
+                const trimmedMember = member.trim();
+                const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
+
+                const matchAttribute = trimmedMember.match(
+                    /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/,
+                );
+                const matchType = trimmedMember.match(/<<(.*?)>>/);
+                const matchOption = trimmedMember.match(/^(\w+)(?:\s*=\s*(\w+))?$/);
+
+                if (matchType) {
+                    const type = matchType[1]; // Extract the matched type
+                    this.namespaces[currentNamespace][className].Type = type;
+                } else if (matchOption) {
+                    const option: OptionData = {
+                        option: {
+                            Name: matchOption[1],
+                            Value: matchOption[2],
+                        },
+                    };
+
+                    this.namespaces[currentNamespace][className].Options.push(option);
+                } else if (matchMethod) {
+                    const [_, scopeSymbol, name, methodArgs, returnType] = matchMethod;
+                    const scopeMap: { [key: string]: string } = {
+                        '+': 'Public',
+                        '-': 'Private',
+                        '#': 'Protected',
+                        '~': 'Package',
+                    };
+                    const scope = scopeMap[scopeSymbol] || 'Public';
+
+                    if (methodArgs) {
+                        // Add method
+                        this.namespaces[currentNamespace][className].Methods[name] = {
+                            Type: returnType,
+                            Scope: scope,
+                            Classifiers: '',
+                            Arguments: methodArgs.split(',').map((arg: string): ArgumentData => {
+                                const [argType, argName] = arg.trim().split(/\s+/);
+                                return {
+                                    Type: argType,
+                                    Name: argName,
+                                };
+                            }),
+                        };
+                    } else {
+                        this.namespaces[currentNamespace][className].Methods[name] = {
+                            Type: returnType,
+                            Scope: scope,
+                            Classifiers: '',
+                        };
+                    }
+                }
+
+                //Attribute: - attributeName: type
+                else if (matchAttribute) {
+                    const [_, scopeSymbol, type, name, value] = matchAttribute;
+                    const scopeMap: { [key: string]: string } = {
+                        '+': 'Public',
+                        '-': 'Private',
+                        '#': 'Protected',
+                        '~': 'Package',
+                    };
+                    const scope = scopeMap[scopeSymbol] || 'Public';
+                    let newString = trimmedMember;
+                    // Remove the first character if it is +, -, #, ~
+                    if (['+', '-', '#', '~'].includes(newString.charAt(0))) {
+                        newString = newString.substring(1).trim();
+                    }
+                    // Remove text from the space
+                    newString = newString.split(' ')[0];
+                    // Add attribute
+                    this.namespaces[currentNamespace][className].Attributes[name] = {
+                        Type: newString,
+                        IsSystemType: !!type.match(/^[A-Z]/),
+                        Scope: scope,
+                        DefaultValue: value ?? '',
+                    };
+                }
+            });
+        } else {
+            console.warn(
+                `Warning: Attempted to add members to class "${className}" in namespace "${currentNamespace}", but it does not exist.`,
+            );
+        }
+    }
+
+    addRelation(relation: Relation) {
+        let { id1, id2, relation: relationType, relationTitle2: multiplicity, title } = relation;
+        for (const ns of Object.values(this.namespaces)) {
+            for (const className of Object.values(ns)) {
+                if (className.Name === id1 || className.Name === id2) {
+                    const sourceId = className.Name === id1 ? id1 : id2;
+                    const targetId = className.Name === id1 ? id2 : id1;
+
+                    let relationName = targetId;
+                    // Check if title contains a colon and extract the name after it
+                    if (title && title.includes(':')) {
+                        relationName = title.split(':')[1].trim();
+                    }
+
+                    let multiplicityType = '';
+                    if (multiplicity?.includes(' ')) {
+                        const parts = multiplicity.split(' ');
+                        multiplicity = parts[0];
+                        multiplicityType = parts[1].replace('[', '').replace(']', '');
+                    }
+
+                    const relationEntry: RelationData = {
+                        Multiplicity: multiplicity,
+                        MultiplicityType: multiplicityType,
+                        Description: title ? title.replace(':', '').trim() : '',
+                        LineType: relationType.lineType.toLowerCase().replace('_', ''),
+                        Target: targetId,
+                    };
+
+                    const relationDirection = className.Name === id1 ? relationType.type2 : relationType.type1;
+
+                    if (relationDirection === 'composition') {
+                        ns[sourceId].Compositions[relationName] = relationEntry;
+                    } else if (relationDirection === 'aggregation') {
+                        ns[sourceId].Aggregations[relationName] = relationEntry;
+                    } else if (relationDirection === 'dependency' && relationType.lineType === 'line') {
+                        ns[sourceId].Associations[relationName] = relationEntry;
+                    } else if (relationDirection === 'realization') {
+                        ns[sourceId].Realizations[relationName] = relationEntry;
+                    } else if (relationDirection === 'inheritance' || relationDirection === 'extension') {
+                        ns[sourceId].Inheritance[relationName] = relationEntry;
+                    } else if (relationDirection === 'implementation') {
+                        ns[sourceId].Implementations[relationName] = relationEntry;
+                    } else if (relationDirection === 'line') {
+                        ns[sourceId].Lines[relationName] = relationEntry;
+                    } else if (relationDirection === 'dottedline') {
+                        ns[sourceId].DashedLinks[relationName] = relationEntry;
+                    } else if (relationDirection === 'dependency' && relationType.lineType === 'dotted_line') {
+                        ns[sourceId].Dependencies[relationName] = relationEntry;
+                    }
+                }
+            }
+        }
+    }
+
+    addClassesToNamespace(namespace: string, classes: string[]) {
+        this.addNamespace(namespace); // Ensure namespace is created
+        this.currentNamespace = namespace;
+        classes.forEach((className: string) => this.addClass(className));
+    }
+
+    cleanupLabel(label: string): string {
+        return label.trim();
     }
 
     initializeParser() {
-        this.parser.yy = {
+        this.internalParser.yy = {
             namespaces: {},
 
             addNamespace: function (namespace: string): void {
-                if (!this.namespaces[namespace]) {
-                    this.namespaces[namespace] = {};
-                }
-                this.currentNamespace = namespace; // Set the current namespace
+                this.addNamespace(namespace);
             },
 
-            setDirection: function (): void {
-            },
+            setDirection: function (): void {},
 
             addClass: function (className: string): void {
-                const currentNamespace = this.currentNamespace || 'global';
-                if (!this.namespaces[currentNamespace]) {
-                    this.namespaces[currentNamespace] = {};
-                }
-                if (!this.namespaces[currentNamespace][className]) {
-                    this.namespaces[currentNamespace][className] = {
-                        Name: className,
-                        Namespace: currentNamespace,
-                        Type: 'Class',
-                        Attributes: {},
-                        Methods: {},
-                        Dependencies: {},
-                        Compositions: {},
-                        Aggregations: {},
-                        Associations: {},
-                        Realizations: {},
-                        Implementations: {},
-                        Inheritance: {},
-                        Lines: {},
-                        DashedLinks: {},
-                        Options: []
-                    };
-                }
+                this.addClass(className);
             },
 
             addMembers: function (className: string, members: string[]): void {
-                const currentNamespace = this.currentNamespace || 'global';
-                if (this.namespaces[currentNamespace] && this.namespaces[currentNamespace][className]) {
-                    members.reverse().forEach((member: string) => {
-                        const trimmedMember = member.trim();
-                        //Method: + methodName(args): returnType
-                        const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
-
-                        const matchAttribute = trimmedMember.match(/([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/);
-                        const matchType = trimmedMember.match(/<<(.*?)>>/);
-                        const matchOption = trimmedMember.match(/^(\w+)(?:\s*=\s*(\w+))?$/);
-
-                        if (matchType) {
-                            const type = matchType[1]; // Extract the matched type
-                            this.namespaces[currentNamespace][className].Type = type;
-                        }
-                        else if (matchOption) {
-                            const option: OptionData = {
-                                option: {
-                                    Name: matchOption[1],
-                                    Value: matchOption[2]
-                                }
-                            };
-                            
-                            this.namespaces[currentNamespace][className].Options.push(option);
-                        }
-                        else if (matchMethod) {
-                            const [_, scopeSymbol, name, methodArgs, returnType] = matchMethod;
-                            const scopeMap: { [key: string]: string } = { '+': 'Public', '-': 'Private', '#': 'Protected', '~': 'Package' };
-                            const scope = scopeMap[scopeSymbol] || 'Public';
-
-                            if (methodArgs) {
-                                // Add method
-                                this.namespaces[currentNamespace][className].Methods[name] = {
-                                    Type: returnType,
-                                    Scope: scope,
-                                    Classifiers: '',
-                                    Arguments: methodArgs.split(',').map((arg: string): ArgumentData => {
-                                        const [argType, argName] = arg.trim().split(/\s+/);
-                                        return {
-                                            Type: argType,
-                                            Name: argName,
-                                        };
-                                    }),
-                                };
-                            }
-                            else {
-                                this.namespaces[currentNamespace][className].Methods[name] = {
-                                    Type: returnType,
-                                    Scope: scope,
-                                    Classifiers: ''
-                                };
-                            }
-                        }
-
-                        //Attribute: - attributeName: type
-                        else if (matchAttribute) {
-                            const [_, scopeSymbol, type, name, value] = matchAttribute;
-                            const scopeMap: { [key: string]: string } = { '+': 'Public', '-': 'Private', '#': 'Protected', '~': 'Package' };
-                            const scope = scopeMap[scopeSymbol] || 'Public';
-                            let newString = trimmedMember;
-                            // Remove the first character if it is +, -, #, ~
-                            if (['+', '-', '#', '~'].includes(newString.charAt(0))) {
-                                newString = newString.substring(1).trim();
-                            }
-                            // Remove text from the space
-                            newString = newString.split(' ')[0];
-                            // Add attribute
-                            this.namespaces[currentNamespace][className].Attributes[name] = {
-                                Type: newString,
-                                IsSystemType: !!type.match(/^[A-Z]/),
-                                Scope: scope,
-                                DefaultValue: value ?? '',
-                            };
-                        }
-                    });
-                } else {
-                    console.warn(
-                        `Warning: Attempted to add members to class "${className}" in namespace "${currentNamespace}", but it does not exist.`
-                    );
-                }
+                this.addMembers(className, members);
             },
 
             addRelation: function (relation: Relation): void {
-                let { id1, id2, relation: relationType, relationTitle2: multiplicity, title } = relation;
-                for (const ns of Object.values(this.namespaces)) {
-                    for (const className of Object.values(ns)) {
-                        if (className.Name === id1 || className.Name === id2) {
-                            const sourceId = className.Name === id1 ? id1 : id2;
-                            const targetId = className.Name === id1 ? id2 : id1;
-                            
-                            let relationName = targetId;                
-                            // Check if title contains a colon and extract the name after it
-                            if (title && title.includes(':')) {
-                                relationName = title.split(':')[1].trim();
-                            }
-
-                            let multiplicityType = '';
-                            if (multiplicity?.includes(' ')) {
-                                const parts = multiplicity.split(' ');
-                                multiplicity = parts[0];
-                                multiplicityType = parts[1].replace('[', '').replace(']', '');
-                            }
-
-                            const relationEntry: RelationData = {
-                                Multiplicity: multiplicity,
-                                MultiplicityType: multiplicityType,
-                                Description: title ? title.replace(':', '').trim() : '',
-                                LineType: relationType.lineType.toLowerCase().replace('_', ''),
-                                Target: targetId
-                            };
-
-                            const relationDirection = className.Name === id1 ? relationType.type2 : relationType.type1;
-
-                            if (relationDirection === 'composition') {
-                                ns[sourceId].Compositions[relationName] = relationEntry;
-                            } else if (relationDirection === 'aggregation') {
-                                ns[sourceId].Aggregations[relationName] = relationEntry;
-                            } else if (relationDirection === 'dependency' && relationType.lineType === 'line') {
-                                ns[sourceId].Associations[relationName] = relationEntry;
-                            } else if (relationDirection === 'realization') {
-                                ns[sourceId].Realizations[relationName] = relationEntry;
-                            } else if (relationDirection === 'inheritance' || relationDirection === 'extension') {
-                                ns[sourceId].Inheritance[relationName] = relationEntry;
-                            } else if (relationDirection === 'implementation') {
-                                ns[sourceId].Implementations[relationName] = relationEntry;
-                            } else if (relationDirection === 'line') {
-                                ns[sourceId].Lines[relationName] = relationEntry;
-                            } else if (relationDirection === 'dottedline') {
-                                ns[sourceId].DashedLinks[relationName] = relationEntry;
-                            } else if (relationDirection === 'dependency' && relationType.lineType === 'dotted_line') {
-                                ns[sourceId].Dependencies[relationName] = relationEntry;
-                            }
-                        }
-                    }
-                }
+                this.addRelation(relation);
             },
 
             cleanupLabel: function (label: string): string {
-                return label.trim();
+                return this.cleanupLabel(label);
             },
 
             addClassesToNamespace: function (namespace: string, classes: string[]): void {
-                this.addNamespace(namespace); // Ensure namespace is created
-                this.currentNamespace = namespace;
-                classes.forEach((className: string) => this.addClass(className));
+                this.addClassesToNamespace(namespace, classes);
             },
 
             relationType: {
@@ -245,12 +282,12 @@ export class MermaidClassDiagramParser {
                 AGGREGATION: 'aggregation',
                 ASSOCIATION: 'association',
                 DEPENDENCY: 'dependency',
-                REALIZATION: 'realization'
+                REALIZATION: 'realization',
             },
 
             lineType: {
                 LINE: 'line',
-                DOTTED_LINE: 'dotted_line'
+                DOTTED_LINE: 'dotted_line',
             },
         };
     }

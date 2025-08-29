@@ -5,7 +5,6 @@ import { MermaidClassDiagramParser } from './mermaidClassDiagramParser';
 // Import js-yaml using require since it's a JavaScript package
 const yaml = require('js-yaml');
 
-
 export class MermaidTransformer {
     private skipNamespace?: string;
     private parser: MermaidClassDiagramParser;
@@ -37,7 +36,7 @@ export class MermaidTransformer {
                     }
                 } else if (Array.isArray(value) && value.length === 0) {
                     delete obj[key];
-                } else if (value === '' && (key !== 'Name' && key !== 'Namespace' && key !== 'Type')) {
+                } else if (value === '' && key !== 'Name' && key !== 'Namespace' && key !== 'Type') {
                     // Optionally remove empty strings, except for these fields if needed
                     delete obj[key];
                 }
@@ -47,9 +46,10 @@ export class MermaidTransformer {
 
     transform(): void {
         const filePaths = fs.statSync(this.inputFile).isDirectory()
-            ? fs.readdirSync(this.inputFile)
-            .filter((file: string) => file.endsWith('.md'))
-            .map((file: string) => path.join(this.inputFile, file))
+            ? fs
+                  .readdirSync(this.inputFile)
+                  .filter((file: string) => file.endsWith('.md'))
+                  .map((file: string) => path.join(this.inputFile, file))
             : [this.inputFile, path.join(__dirname, this.inputFile)].filter(fs.existsSync);
 
         if (filePaths.length === 0) {
@@ -75,7 +75,7 @@ export class MermaidTransformer {
                 console.error(`Error reading file ${filePath}:`, (error as Error).message);
             }
         });
-    
+
         // Regex to find ```mermaid + classdiagram blocks
         const regex = /```mermaid\s*([\s\S]*?classdiagram[\s\S]*?)```/gim;
         let match: RegExpExecArray | null;
@@ -87,15 +87,15 @@ export class MermaidTransformer {
                 console.error('Error parsing Mermaid code block:', (error as Error).message);
             }
         }
-    
+
         // After parsing all blocks, generate YAML files
         const outputDir = outDirs.length ? outDirs[0] : this.outputDir;
-    
+
         for (const [namespace, classes] of Object.entries(this.parser.getParseOutcome())) {
-            const namespaceDir = this.skipNamespace 
-                ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/')) 
+            const namespaceDir = this.skipNamespace
+                ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/'))
                 : path.join(outputDir, namespace.replace(/\./g, '/'));
-            
+
             fs.mkdirSync(namespaceDir, { recursive: true });
             for (const [className, classData] of Object.entries(classes)) {
                 this.removeEmptyKeys(classData);
