@@ -90,8 +90,8 @@ export class MermaidTransformer {
 
         // After parsing all blocks, generate YAML files
         const outputDir = outDirs.length ? outDirs[0] : this.outputDir;
-
-        for (const [namespace, classes] of Object.entries(this.parser.getParseOutcome())) {
+        const parseOutcome = this.parser.getParseOutcome();
+        for (const [namespace, classes] of Object.entries(parseOutcome)) {
             const namespaceDir = this.skipNamespace
                 ? path.join(outputDir, namespace.replace(this.skipNamespace, '').replace(/\./g, '/'))
                 : path.join(outputDir, namespace.replace(/\./g, '/'));

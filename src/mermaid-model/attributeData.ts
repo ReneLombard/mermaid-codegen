@@ -3,4 +3,5 @@ interface AttributeData {
     IsSystemType: boolean;
     Scope: string;
     DefaultValue: string;
+    Comment?: string;
 }

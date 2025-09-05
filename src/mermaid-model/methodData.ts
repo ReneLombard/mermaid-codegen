@@ -3,4 +3,5 @@ interface MethodData {
     Scope: string;
     Classifiers: string;
     Arguments?: ArgumentData[];
+    Comment?: string;
 }

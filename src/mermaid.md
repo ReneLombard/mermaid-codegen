@@ -35,8 +35,11 @@ classDiagram
 namespace Models {
     class Vehicle {
         <<class>>
+        %% vehicle brand
         +String Make
+        %% specific model
         +String Model
+        %% production year
         +int Year
         +String Status
     }
@@ -54,6 +57,7 @@ namespace Controllers {
     }
 }
 
+%% Vehicle for this controller
 VehiclesController --> Vehicle : returns
 
 ```

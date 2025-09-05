@@ -36,6 +36,8 @@ export class MermaidClassDiagramParser {
         [namespace: string]: { [className: string]: ClassData };
     } = {};
     private currentNamespace: string = '';
+    private relationComments: { [relationKey: string]: string } = {};
+    private attributeComments: { [attributeKey: string]: string } = {};
 
     constructor() {
         this.internalParser = classDiagramParser.parser;
@@ -44,16 +46,90 @@ export class MermaidClassDiagramParser {
 
     public parse(mermaidContent: string): void {
         try {
+            // Pre-process the content to capture comments
+            this.preprocessContent(mermaidContent);
             this.internalParser.parse(mermaidContent);
         } catch (error) {
             throw new Error(`Error parsing Mermaid content: ${(error as Error).message}`);
         }
     }
 
+    private preprocessContent(content: string): void {
+        const lines = content.split('\n');
+        let lastComment = '';
+        let currentClass = '';
+        let currentNamespace = '';
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            // Track current namespace
+            if (line.startsWith('namespace ')) {
+                currentNamespace = line.match(/namespace\s+(\w+)/)?.[1] || '';
+                continue;
+            }
+
+            // Track current class
+            const classMatch = line.match(/class\s+(\w+)/);
+            if (classMatch) {
+                currentClass = classMatch[1];
+                continue;
+            }
+
+            // Capture comment lines
+            if (line.startsWith('%%')) {
+                lastComment = line.substring(2).trim();
+                continue;
+            }
+
+            // Check for relation lines
+            const relationPattern =
+                /(\w+)\s*((?:[\|\}o][\|\-]*[\|\{o><])|(?:--[\>o])|(?:\.\.[\>o])|(?:==[\>o])|(?:<--)|(?:<\.\.)|(?:<==))\s*(\w+)(?:\s*:\s*(\w+))?/;
+            const relationMatch = relationPattern.exec(line);
+
+            if (relationMatch) {
+                const [_, sourceClass, _relationSymbol, targetClass, relationName] = relationMatch;
+
+                if (lastComment) {
+                    const relationKey = `${sourceClass}-${targetClass}-${relationName}`;
+                    this.relationComments[relationKey] = lastComment;
+                    console.log(`Stored relation comment: ${relationKey} -> ${lastComment}`);
+                }
+
+                lastComment = '';
+                continue;
+            }
+
+            // Check for attribute lines (inside a class)
+            if (currentClass) {
+                const attributePattern = /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)/;
+                const attributeMatch = attributePattern.exec(line);
+
+                if (attributeMatch) {
+                    const [_, _scopeSymbol, _type, attributeName] = attributeMatch;
+
+                    if (lastComment) {
+                        const attributeKey = `${currentNamespace}-${currentClass}-${attributeName}`;
+                        this.attributeComments[attributeKey] = lastComment;
+                        console.log(`Stored attribute comment: ${attributeKey} -> ${lastComment}`);
+                    }
+
+                    lastComment = '';
+                    continue;
+                }
+            }
+
+            // Reset comment if we encounter other non-empty, non-comment lines
+            if (line && !line.startsWith('classDiagram') && !line.includes('{') && !line.includes('}')) {
+                lastComment = '';
+            }
+        }
+    }
+
     public getParseOutcome(): {
         [namespace: string]: { [className: string]: ClassData };
     } {
-        return this.internalParser.yy.namespaces;
+        return this.namespaces;
     }
 
     addNamespace(namespace: string) {
@@ -93,10 +169,11 @@ export class MermaidClassDiagramParser {
         const currentNamespace = this.currentNamespace || 'global';
         if (this.namespaces[currentNamespace]?.[className]) {
             members.reverse();
+
             members.forEach((member: string) => {
                 const trimmedMember = member.trim();
-                const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
 
+                const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
                 const matchAttribute = trimmedMember.match(
                     /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/,
                 );
@@ -125,6 +202,10 @@ export class MermaidClassDiagramParser {
                     };
                     const scope = scopeMap[scopeSymbol] || 'Public';
 
+                    // Get the captured comment for this attribute
+                    const attributeKey = `${currentNamespace}-${className}-${name}`;
+                    const comment = this.attributeComments[attributeKey] || '';
+
                     if (methodArgs) {
                         // Add method
                         this.namespaces[currentNamespace][className].Methods[name] = {
@@ -138,16 +219,17 @@ export class MermaidClassDiagramParser {
                                     Name: argName,
                                 };
                             }),
+                            Comment: comment,
                         };
                     } else {
                         this.namespaces[currentNamespace][className].Methods[name] = {
                             Type: returnType,
                             Scope: scope,
                             Classifiers: '',
+                            Comment: comment,
                         };
                     }
                 }
-
                 //Attribute: - attributeName: type
                 else if (matchAttribute) {
                     const [_, scopeSymbol, type, name, value] = matchAttribute;
@@ -157,6 +239,11 @@ export class MermaidClassDiagramParser {
                         '#': 'Protected',
                         '~': 'Package',
                     };
+
+                    // Get the captured comment for this attribute
+                    const attributeKey = `${currentNamespace}-${className}-${name}`;
+                    const comment = this.attributeComments[attributeKey] || '';
+
                     const scope = scopeMap[scopeSymbol] || 'Public';
                     let newString = trimmedMember;
                     // Remove the first character if it is +, -, #, ~
@@ -171,6 +258,7 @@ export class MermaidClassDiagramParser {
                         IsSystemType: !!type.match(/^[A-Z]/),
                         Scope: scope,
                         DefaultValue: value ?? '',
+                        Comment: comment,
                     };
                 }
             });
@@ -191,9 +279,13 @@ export class MermaidClassDiagramParser {
 
                     let relationName = targetId;
                     // Check if title contains a colon and extract the name after it
-                    if (title && title.includes(':')) {
+                    if (title?.includes(':')) {
                         relationName = title.split(':')[1].trim();
                     }
+
+                    // Get the captured comment for this relation
+                    const relationKey = `${id1}-${id2}-${relationName}`;
+                    const comment = this.relationComments[relationKey] || '';
 
                     let multiplicityType = '';
                     if (multiplicity?.includes(' ')) {
@@ -208,6 +300,7 @@ export class MermaidClassDiagramParser {
                         Description: title ? title.replace(':', '').trim() : '',
                         LineType: relationType.lineType.toLowerCase().replace('_', ''),
                         Target: targetId,
+                        Comment: comment,
                     };
 
                     const relationDirection = className.Name === id1 ? relationType.type2 : relationType.type1;

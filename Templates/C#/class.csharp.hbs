@@ -10,6 +10,11 @@ public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance
 {
 
 {{#each Attributes}}
+    {{#if this.Comment}}
+    /// <summary>
+    /// {{this.Comment}}
+    /// </summary>
+    {{/if}}
     {{#if this.Annotations.Required}}
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
     {{/if}}

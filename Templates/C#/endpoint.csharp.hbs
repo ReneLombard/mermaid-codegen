@@ -29,6 +29,11 @@ public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each
     {{/if}}
     {{#if this.Associations}}
     {{#each Associations}}
+        {{#if this.Comment}}
+        /// <summary>
+        /// {{this.Comment}}
+        /// </summary>
+        {{/if}}
         private {{#if (isEq this.Multiplicity "1")}}{{@key}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
     {{/each}}
     {{/if}}

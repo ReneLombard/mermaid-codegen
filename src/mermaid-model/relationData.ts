@@ -4,4 +4,5 @@ interface RelationData {
     Description: string;
     LineType: string;
     Target: string;
+    Comment?: string;
 }
