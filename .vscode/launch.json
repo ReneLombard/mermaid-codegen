@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Transform (TypeScript)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/index.ts",
+            "args": ["transform", "-i", "./mermaid.md", "-o", "../output", "-n", "HelloWorld"],
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal",
+            "restart": true,
+            "protocol": "inspector",
+            "sourceMaps": true,
+            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/src/tsconfig.debug.json"
+            }
+        }
+    ]
+}

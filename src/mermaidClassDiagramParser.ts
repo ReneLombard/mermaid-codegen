@@ -247,33 +247,35 @@ export class MermaidClassDiagramParser {
     }
 
     initializeParser() {
+        const self = this;
+
         this.internalParser.yy = {
             namespaces: {},
 
             addNamespace: function (namespace: string): void {
-                this.addNamespace(namespace);
+                self.addNamespace(namespace);
             },
 
             setDirection: function (): void {},
 
             addClass: function (className: string): void {
-                this.addClass(className);
+                self.addClass(className);
             },
 
             addMembers: function (className: string, members: string[]): void {
-                this.addMembers(className, members);
+                self.addMembers(className, members);
             },
 
             addRelation: function (relation: Relation): void {
-                this.addRelation(relation);
+                self.addRelation(relation);
             },
 
             cleanupLabel: function (label: string): string {
-                return this.cleanupLabel(label);
+                return self.cleanupLabel(label);
             },
 
             addClassesToNamespace: function (namespace: string, classes: string[]): void {
-                this.addClassesToNamespace(namespace, classes);
+                self.addClassesToNamespace(namespace, classes);
             },
 
             relationType: {
