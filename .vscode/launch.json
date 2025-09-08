@@ -17,6 +17,23 @@
             "env": {
                 "TS_NODE_PROJECT": "${workspaceFolder}/src/tsconfig.debug.json"
             }
+        },
+        {
+            "name": "Debug Generate (TypeScript)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/index.ts",
+            "args": ["generate", "-i", "../output", "-o", "../output/code", "--templates", "../Templates/C#"],
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal",
+            "restart": true,
+            "protocol": "inspector",
+            "sourceMaps": true,
+            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/src/tsconfig.debug.json"
+            }
         }
     ]
 }
