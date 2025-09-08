@@ -93,7 +93,6 @@ export class MermaidClassDiagramParser {
                 if (lastComment) {
                     const relationKey = `${sourceClass}-${targetClass}-${relationName}`;
                     this.relationComments[relationKey] = lastComment;
-                    console.log(`Stored relation comment: ${relationKey} -> ${lastComment}`);
                 }
 
                 lastComment = '';
@@ -111,7 +110,6 @@ export class MermaidClassDiagramParser {
                     if (lastComment) {
                         const attributeKey = `${currentNamespace}-${currentClass}-${attributeName}`;
                         this.attributeComments[attributeKey] = lastComment;
-                        console.log(`Stored attribute comment: ${attributeKey} -> ${lastComment}`);
                     }
 
                     lastComment = '';
