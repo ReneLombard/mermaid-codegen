@@ -149,7 +149,7 @@ export class CodeGenerator {
             namespaceConfiguration.prefixToIgnore &&
             namespace.startsWith(namespaceConfiguration.prefixToIgnore)
         ) {
-            trimmedNamespace = namespace.substring(namespaceConfiguration.prefixToIgnore.length).replace(/^\./, ''); // Replace trimStart('.') with proper regex
+            trimmedNamespace = namespace.substring(namespaceConfiguration.prefixToIgnore.length).replace(/^\./, '');
         }
 
         const namespaceParts: string[] = trimmedNamespace.split('.');
