@@ -5,6 +5,7 @@ classDiagramParser.js
 package-lock.json
 *.jison
 output/*
+
 # Logs
 logs
 *.log
