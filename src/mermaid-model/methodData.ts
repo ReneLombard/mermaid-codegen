@@ -1,5 +1,7 @@
+import { ArgumentData } from './argumentData';
+
 /** Represents a class method */
-interface MethodData {
+export interface MethodData {
     Type: string;
     Scope: string;
     Classifiers: string;

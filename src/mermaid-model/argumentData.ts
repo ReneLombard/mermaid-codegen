@@ -1,5 +1,5 @@
 /** Represents a method parameter */
-interface ArgumentData {
+export interface ArgumentData {
     Type: string;
     Name: string;
 }

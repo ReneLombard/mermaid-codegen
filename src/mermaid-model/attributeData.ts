@@ -1,5 +1,5 @@
 /** Represents a class attribute/property */
-interface AttributeData {
+export interface AttributeData {
     Type: string;
     IsSystemType: boolean;
     Scope: string;

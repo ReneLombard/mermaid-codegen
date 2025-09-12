@@ -1,5 +1,5 @@
 /** Represents class options/annotations */
-interface OptionData {
+export interface OptionData {
     option: {
         Name: string;
         Value?: string;

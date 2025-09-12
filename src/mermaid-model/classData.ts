@@ -1,5 +1,10 @@
+import { AttributeData } from './attributeData';
+import { MethodData } from './methodData';
+import { OptionData } from './optionData';
+import { RelationData } from './relationData';
+
 /** Complete class definition with all its components and relationships */
-interface ClassData {
+export interface ClassData {
     Name: string;
     Namespace: string;
     Type: string;

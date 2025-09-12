@@ -1,5 +1,5 @@
 /** Represents relationships between classes */
-interface RelationData {
+export interface RelationData {
     Multiplicity?: string;
     MultiplicityType?: string;
     Description: string;
