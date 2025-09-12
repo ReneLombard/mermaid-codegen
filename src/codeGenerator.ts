@@ -188,7 +188,7 @@ export class CodeGenerator {
     }
 
     /** Applies specific replacements based on the item key (Scope, Type, etc.) */
-    private applyReplacements(value: any, mappings: Mappings, itemKey: string): any {
+    private applyReplacements(value: string, mappings: Mappings, itemKey: string): string {
         switch (itemKey) {
             case 'Scope':
                 return this.applyReplacementsForMapping(mappings.Scope, value);
@@ -200,7 +200,10 @@ export class CodeGenerator {
     }
 
     /** Applies replacements using a specific mapping dictionary */
-    private applyReplacementsForMapping(mappingDict: { [mappingKey: string]: string } | undefined, value: any): string {
+    private applyReplacementsForMapping(
+        mappingDict: { [mappingKey: string]: string } | undefined,
+        value: string,
+    ): string {
         if (!mappingDict) {
             return value;
         }
@@ -223,7 +226,7 @@ export class CodeGenerator {
 }
 
 // Helper function
-function applyRegexRecursively(str: any, regex: RegExp, replacement: any): any {
+function applyRegexRecursively(str: string, regex: RegExp, replacement: string): string {
     let current = str;
     while (true) {
         const next = current.replace(regex, replacement);
