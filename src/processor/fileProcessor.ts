@@ -2,7 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Config, Template, Templates } from '../types/templates';
 
+/**
+ * Processes template files and configurations
+ */
 export class FileProcessor {
+    /** Processes template directory and organizes files by language */
     static processFiles(directory: string): Templates {
         const files = fs.readdirSync(directory).sort((a: string, b: string): number => {
             if (a.endsWith('.json')) return -1;

@@ -1,3 +1,4 @@
+/** Complete class definition with all its components and relationships */
 interface ClassData {
     Name: string;
     Namespace: string;

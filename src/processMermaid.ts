@@ -5,6 +5,9 @@ import { MermaidClassDiagramParser } from './mermaidClassDiagramParser';
 // Import js-yaml using require since it's a JavaScript package
 const yaml = require('js-yaml');
 
+/**
+ * Transforms Mermaid class diagrams into YAML files for code generation
+ */
 export class MermaidTransformer {
     private skipNamespace?: string;
     private parser: MermaidClassDiagramParser;
@@ -13,12 +16,12 @@ export class MermaidTransformer {
 
     constructor(input: string, output: string, skipNamespace?: string) {
         this.skipNamespace = skipNamespace;
-        // Ensure this import is present at the top
         this.parser = new MermaidClassDiagramParser();
         this.inputFile = input;
         this.outputDir = output;
     }
 
+    /** Recursively removes empty objects, arrays, and strings from parsed data */
     private removeEmptyKeys(obj: any): void {
         if (typeof obj !== 'object' || obj === null) return;
 
@@ -44,6 +47,7 @@ export class MermaidTransformer {
         }
     }
 
+    /** Main transformation method that processes Mermaid files and generates YAML */
     transform(): void {
         const filePaths = fs.statSync(this.inputFile).isDirectory()
             ? fs

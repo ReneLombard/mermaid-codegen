@@ -3,16 +3,22 @@ import * as path from 'path';
 import * as YAML from 'yamljs';
 import { DynamicYamlClass } from '../dynamicYamlClass';
 
+/** Structure of YAML content with Name field */
 interface YamlContent {
     Name: string;
     [key: string]: any;
 }
 
+/** Map of class names to merged YAML classes */
 interface MergedClasses {
     [className: string]: DynamicYamlClass;
 }
 
+/**
+ * Loads and merges YAML files from directories
+ */
 export class DynamicYamlLoader {
+    /** Recursively loads all YAML files from a directory and merges classes with the same name */
     static loadAndMergeYamlFiles(directory: string): DynamicYamlClass[] {
         function getAllFiles(dir: string, fileList: string[] = []): string[] {
             const files = fs.readdirSync(dir);
@@ -46,7 +52,6 @@ export class DynamicYamlLoader {
                 mergedClasses[className] = new DynamicYamlClass();
                 mergedClasses[className].properties = yamlContent;
             } else {
-                //console.log(`Merging properties for class: ${className}`);
                 mergedClasses[className].properties = this.mergeDeep(mergedClasses[className].properties, yamlContent);
             }
         });
@@ -54,7 +59,7 @@ export class DynamicYamlLoader {
         return Object.values(mergedClasses);
     }
 
-    // Helper function to deep merge two objects
+    /** Deep merges two objects */
     static mergeDeep<T extends Record<string, any>>(target: T, source: Partial<T>): T {
         for (const key in source) {
             if ((source[key] as any) instanceof Object && key in target) {

@@ -13,11 +13,15 @@ import {
     Templates,
 } from './types/templates';
 
+/**
+ * Generates code files from YAML configurations using Handlebars templates
+ */
 export class CodeGenerator {
     private input!: string;
     private output!: string;
     private templates!: string;
 
+    /** Main method that orchestrates the code generation process */
     generate(opts: GenerateOptions): void {
         this.input = opts.input;
         this.output = opts.output;
@@ -116,6 +120,7 @@ export class CodeGenerator {
         });
     }
 
+    /** Determines output directory path based on namespace configuration */
     private determineOutputDirectory(
         namespace: string,
         configuredOutputDirectory: string,
@@ -154,6 +159,7 @@ export class CodeGenerator {
         return returnPath;
     }
 
+    /** Processes YAML data by applying type and scope mappings */
     private processData(yamlObject: any, mappings: Mappings): any {
         const processedData: any = {};
 
@@ -181,6 +187,7 @@ export class CodeGenerator {
         return processedData;
     }
 
+    /** Applies specific replacements based on the item key (Scope, Type, etc.) */
     private applyReplacements(value: any, mappings: Mappings, itemKey: string): any {
         switch (itemKey) {
             case 'Scope':
@@ -192,6 +199,7 @@ export class CodeGenerator {
         }
     }
 
+    /** Applies replacements using a specific mapping dictionary */
     private applyReplacementsForMapping(mappingDict: { [mappingKey: string]: string } | undefined, value: any): string {
         if (!mappingDict) {
             return value;

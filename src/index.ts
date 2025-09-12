@@ -11,20 +11,23 @@ import { Stats } from 'fs';
 import * as path from 'path';
 import { TransformOptions } from './types/transformOptions';
 
-// Import package.json (you'll need to create this for the TypeScript project)
+// Import package.json for CLI metadata
 const pkg = require(path.join(__dirname, '../package.json'));
 
+/** Options for project initialization command */
 interface InitializeOptions {
     language: string;
     directory: string;
 }
 
+/** Options for code generation command */
 interface GenerateOptions {
     input: string;
     output: string;
     templates: string;
 }
 
+/** Options for file watching command */
 interface WatchOptions {
     mermaidInput: string;
     ymlInput: string;

@@ -1,3 +1,4 @@
+/** Represents relationships between classes */
 interface RelationData {
     Multiplicity?: string;
     MultiplicityType?: string;

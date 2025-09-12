@@ -1,7 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Lists available programming languages/templates
+ */
 export class ListLanguagesService {
+    /** Lists all available languages by scanning the templates directory */
     runListLanguages(): number {
         // Implement logic to list available languages
         console.log('Available languages: ');

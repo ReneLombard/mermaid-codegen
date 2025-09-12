@@ -1,12 +1,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/** Options for project initialization */
 interface InitializeOptions {
     language: string;
     directory?: string;
 }
 
+/**
+ * Initializes new projects by copying language-specific templates
+ */
 export class InitializeService {
+    /** Initializes a new project with the specified language templates */
     runInitializeAndReturnExitCode(opts: InitializeOptions): number {
         // Implement initialization logic here
         console.log(`Initializing project with language: ${opts.language}`);

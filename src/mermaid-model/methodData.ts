@@ -1,3 +1,4 @@
+/** Represents a class method */
 interface MethodData {
     Type: string;
     Scope: string;
