@@ -2,8 +2,7 @@ export interface Config {
     language: string;
     extension: string;
     namespace?: NamespaceConfiguration;
-    mappings: { [key: string]: any };
-    [key: string]: any;
+    mappings: Mappings;
 }
 
 export interface Template {
@@ -28,7 +27,8 @@ export interface NamespaceConfiguration {
 }
 
 export interface Mappings {
-    [key: string]: { [value: string]: any };
+    Scope?: { [key: string]: string };
+    Type?: { [key: string]: string };
 }
 
 export interface GenerateOptions {

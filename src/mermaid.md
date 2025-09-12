@@ -40,7 +40,7 @@ namespace Models {
         %% specific model
         +String Model
         %% production year
-        +int Year
+        +Number Year
         +String Status
     }
 }

@@ -167,51 +167,50 @@ export class CodeGenerator {
                         return this.processData(item, mappings);
                     } else {
                         // Apply mappings to each primitive item (e.g., list of strings)
-                        if (mappings[key]) {
-                            return this.applyReplacements(item, mappings, key);
-                        } else {
-                            return item;
-                        }
+                        return this.applyReplacements(item, mappings, key);
                     }
                 });
             } else if (typeof value === 'object') {
                 // If the value is an object (e.g., nested structure), recurse
                 processedData[key] = this.processData(value, mappings);
             } else {
-                // The value is a primitive (string, number, etc.)
-                if (mappings[key]) {
-                    const mappingDict: { [value: string]: any } = mappings[key];
-                    let replacedValue: any = value;
-
-                    // 1) Check for exact match
-                    if (mappingDict[replacedValue] !== undefined) {
-                        replacedValue = mappingDict[replacedValue];
-                    }
-
-                    // 2) Try all REGEX mappings
-                    for (const [patternKey, patternReplace] of Object.entries(mappingDict)) {
-                        if (patternKey.startsWith('REGEX:')) {
-                            const rawPattern: string = patternKey.slice('REGEX:'.length);
-                            const regex: RegExp = new RegExp(rawPattern);
-                            replacedValue = applyRegexRecursively(replacedValue, regex, patternReplace);
-                        }
-                    }
-
-                    processedData[key] = replacedValue;
-                } else {
-                    // No mapping for this key, keep original
-                    processedData[key] = value;
-                }
+                processedData[key] = this.applyReplacements(value, mappings, key);
             }
         });
 
         return processedData;
     }
 
-    private applyReplacements(item: any, mappings: Mappings, key: string): any {
-        // Implementation for applyReplacements method
-        // This method was referenced but not defined in the original code
-        return item;
+    private applyReplacements(value: any, mappings: Mappings, itemKey: string): any {
+        switch (itemKey) {
+            case 'Scope':
+                return this.applyReplacementsForMapping(mappings.Scope, value);
+            case 'Type':
+                return this.applyReplacementsForMapping(mappings.Type, value);
+            default:
+                return value;
+        }
+    }
+
+    private applyReplacementsForMapping(mappingDict: { [mappingKey: string]: string } | undefined, value: any): string {
+        if (!mappingDict) {
+            return value;
+        }
+
+        let replacedValue: string = value;
+        if (mappingDict[value] !== undefined) {
+            replacedValue = mappingDict[value];
+        }
+
+        for (const [patternKey, patternReplace] of Object.entries(mappingDict)) {
+            if (patternKey.startsWith('REGEX:')) {
+                const rawPattern: string = patternKey.slice('REGEX:'.length);
+                const regex: RegExp = new RegExp(rawPattern);
+                replacedValue = applyRegexRecursively(replacedValue, regex, patternReplace);
+            }
+        }
+
+        return replacedValue;
     }
 }
 
