@@ -10,10 +10,10 @@
         "process-jison": "node -r ts-node/register processJison.ts",
         "start": "npm run build && node dist/index.js",
         "dev": "ts-node index.ts",
-        "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output -n HelloWorld",
-        "generate:code": "npm run build && node dist/index.js generate -i ../output -o ../output/code --templates \"../Templates/C#\"",
-        "generate:docs": "npm run build && node dist/index.js generate -i ../output -o ../output/docs --templates \"../Templates/Documentation\"",
-        "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output\" -o \"../output/code\" --templates \"../Templates/C#\" -n HelloWorld"
+        "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output/yml -n Company.VTC",
+        "generate:code": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/code --templates \"../Templates/C#\"",
+        "generate:docs": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/docs --templates \"../Templates/Documentation\"",
+        "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output/yml\" -o \"../output/code\" --templates \"../Templates/C#\" -n Company.VTC"
     },
     "dependencies": {
         "chokidar": "^4.0.3",

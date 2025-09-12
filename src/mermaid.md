@@ -32,7 +32,7 @@ The logical view of the Vehicle Management System (VMS) includes the following c
 ```mermaid
 classDiagram
 
-namespace Models {
+namespace Company.VTC.Models {
     class Vehicle {
         <<class>>
         %% vehicle brand
@@ -45,7 +45,7 @@ namespace Models {
     }
 }
 
-namespace Controllers {
+namespace Company.VTC.Controllers {
     class VehiclesController {
         <<endpoint>>
         +GetVehicleByMake(string make): Task~ActionResult~Vehicle~~

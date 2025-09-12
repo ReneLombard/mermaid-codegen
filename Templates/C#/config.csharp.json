@@ -2,7 +2,7 @@
     "language": "CSharp",
     "extension": "cs",
     "namespace": {
-        "prefixToIgnore": "HelloWorld"
+        "prefixToIgnore": "Company.VTC"
     },
     "mappings": {
         "Scope": {
