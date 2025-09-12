@@ -1,0 +1,53 @@
+﻿using System;
+using System.Collections.Generic;
+{{#each Usings}}
+using {{this}};
+{{/each}}
+
+{{#if this.Namespace}}namespace {{this.Namespace}};{{/if}}
+
+public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+{
+
+{{#each Attributes}}
+    {{#if this.Comment}}
+    /// <summary>
+    /// {{this.Comment}}
+    /// </summary>
+    {{/if}}
+    {{#if this.Annotations.Required}}
+    {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
+    {{/if}}
+    {{#if this.Annotations.MaxLength}}
+    [MaxLength({{this.Annotations.MaxLength.Length}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}")]
+    {{/if}}
+    {{#if this.Annotations.MinLength}}
+    [MinLength({{this.Annotations.MinLength.Length}}, ErrorMessage="{{this.Annotations.MinLength.ErrorMessage}}")]
+    {{/if}}
+    {{#if this.Annotations.Range}}
+    [Range({{this.Annotations.Range.Min}},{{this.Annotations.Range.Max}}{{#if this.Annotations.Range.ErrorMessage}}, ErrorMessage = "{{this.Annotations.Range.ErrorMessage}}"{{/if}})]
+    {{/if}}
+    {{this.Scope}} {{{this.Type}}} {{@key}} { get; set; }{{#if this.DefaultValue}} = {{#if (isEq this.DefaultValue "default")}}new(){{else}}{{{this.DefaultValue}}}{{/if}};{{/if}}
+
+{{/each}}
+{{!-- Compositions --}}
+{{#if this.Compositions}}
+{{#each this.Compositions}}
+    private readonly {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}} = new();
+{{/each}}
+{{/if}}
+{{!-- Aggregations --}}
+{{#if this.Aggregations}}
+{{#each this.Aggregations}}
+    private {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+{{/each}}
+{{/if}}
+{{#if this.Associations}}
+{{#each Associations}}
+    private {{#if (isEq this.Multiplicity "1")}}{{{@key}}} {{@key}}{{else}}List<{{@key}}> {{@key}}{{/if}};
+{{/each}}
+{{/if}}
+{{#each Methods}}
+    {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} partial {{{this.ReturnType}}} {{@key}}{{#if this.Arguments}}( {{#each this.Arguments}}{{{this.Type}}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}){{else}}(){{/if}};
+{{/each}}
+}

@@ -1,0 +1,78 @@
+{{!-- filepath: ../Templates/Documentation/Class.md.hbs --}}
+# {{Name}}
+
+**Type:** {{Type}}  
+**Namespace:** {{Namespace}}
+
+{{#if Options}}
+## Annotations
+
+{{#each Options}}
+- `{{option.Name}}`{{#if option.Value}} = {{option.Value}}{{/if}}{{#if option.Comment}} - {{option.Comment}}{{/if}}
+{{/each}}
+
+{{/if}}
+{{#if Attributes}}
+## Attributes
+
+| Name | Type | Scope | Default | Description |
+|------|------|-------|---------|-------------|
+{{#each Attributes}}
+| `{{@key}}` | `{{{Type}}}` | {{Scope}} | `{{DefaultValue}}` | {{Comment}} |
+{{/each}}
+
+{{/if}}
+{{#if Methods}}
+## Methods
+
+{{#each Methods}}
+### {{@key}}
+
+**Scope:** {{Scope}}  
+**Return Type:** `{{{Type}}}`
+
+{{#if Arguments}}
+**Parameters:**
+
+| Name | Type |
+|------|------|
+{{#each Arguments}}
+| `{{Name}}` | `{{{Type}}}` |
+{{/each}}
+
+{{/if}}
+{{#if Comment}}
+**Description:** {{Comment}}
+
+{{/if}}
+{{/each}}
+{{/if}}
+{{#if (or Associations Compositions Aggregations Dependencies Inheritance Realizations Implementations)}}
+## Relations
+
+| Target | Relationship | Multiplicity | Description |
+|--------|--------------|--------------|-------------|
+{{#each Associations}}
+| `{{Target}}` | Association | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Compositions}}
+| `{{Target}}` | Composition | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Aggregations}}
+| `{{Target}}` | Aggregation | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Dependencies}}
+| `{{Target}}` | Dependency | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Inheritance}}
+| `{{Target}}` | Inheritance | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Realizations}}
+| `{{Target}}` | Realization | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+{{#each Implementations}}
+| `{{Target}}` | Implementation | {{Multiplicity}} | {{#if Comment}}{{Comment}}{{else}}{{Description}}{{/if}} |
+{{/each}}
+
+{{/if}}
+---

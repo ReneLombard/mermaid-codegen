@@ -1,54 +1,35 @@
 {
-  "name": "mermaid-codegen",
-  "version": "1.0.6",
-  "main": "./dist/index.js",
-  "bin": {
-    "mermaid-codegen": "./dist/index.js"
-  },
-  "keywords": [
-    "mermaid",
-    "codegen",
-    "diagrams",
-    "javascript"
-  ],
-  "bugs": {
-    "url": "https://github.com/ReneLombard/mermaid-codegen/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ReneLombard/mermaid-codegen.git"
-  },
-  "scripts": {
-    "transform": "node index.js transform -i ./mermaid.md -o ./output -n HelloWorld",
-    "generate": "node index.js generate -i \".\\output\" -o \".\\output\\code\" -t \".\\Templates\\C#\"",
-    "watch": "node index.js watch -m .\\ -y \".\\output\" -o \".\\output\\code\" --templates \".\\Templates\\C#\" -n HelloWorld",
-    "build": "node processJison.js && esbuild index.js --bundle --minify --platform=node --outfile=dist/index.js && cpx \"Templates/**/*\" dist/Templates",
-    "release": "standard-version"
-  },
-  "license": "MIT",
-  "description": "Code generation utilities for Mermaid diagrams",
-  "bundleDependencies": [
-    "chokidar",
-    "commander",
-    "handlebars",
-    "jison",
-    "js-yaml",
-    "yamljs"
-  ],
-  "dependencies": {
-    "chokidar": "^4.0.3",
-    "commander": "^13.1.0",
-    "handlebars": "^4.7.8",
-    "jison": "^0.4.18",
-    "js-yaml": "^4.1.0",
-    "yamljs": "^0.3.0"
-  },
-  "files": [
-    "dist"
-  ],
-  "devDependencies": {
-    "cpx": "^1.2.1",
-    "esbuild": "^0.25.2",
-    "standard-version": "^9.5.0"
-  }
+    "name": "mermaid-codegen",
+    "version": "1.1.0",
+    "main": "./dist/index.js",
+    "bin": {
+        "mermaid-codegen": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "npm run process-jison && tsc",
+        "process-jison": "node -r ts-node/register processJison.ts",
+        "start": "npm run build && node dist/index.js",
+        "dev": "ts-node index.ts",
+        "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output/yml -n Company.VTC",
+        "generate:code": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/code --templates \"../Templates/C#\"",
+        "generate:docs": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/docs --templates \"../Templates/Documentation\"",
+        "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output/yml\" -o \"../output/code\" --templates \"../Templates/C#\" -n Company.VTC"
+    },
+    "dependencies": {
+        "chokidar": "^4.0.3",
+        "commander": "^13.1.0",
+        "handlebars": "^4.7.8",
+        "jison": "^0.4.18",
+        "js-yaml": "^4.1.0",
+        "yamljs": "^0.3.0"
+    },
+    "devDependencies": {
+        "@types/chokidar": "^2.1.3",
+        "@types/commander": "^2.12.2",
+        "@types/handlebars": "^4.0.40",
+        "@types/node": "^24.3.0",
+        "@types/yamljs": "^0.2.34",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.2"
+    }
 }

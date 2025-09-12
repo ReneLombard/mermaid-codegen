@@ -1,0 +1,16 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "sourceMap": true,
+        "inlineSourceMap": false,
+        "inlineSources": true
+    },
+    "ts-node": {
+        "files": true,
+        "transpileOnly": false,
+        "compilerOptions": {
+            "module": "commonjs",
+            "target": "ES2020"
+        }
+    }
+}
