@@ -78,7 +78,7 @@ export class MermaidClassDiagramParser {
 
             // Track current namespace
             if (line.startsWith('namespace ')) {
-                currentNamespace = line.match(/namespace\s+(\w+)/)?.[1] || '';
+                currentNamespace = line.match(/namespace\s+([\w.]+)/)?.[1] || '';
                 continue;
             }
 
