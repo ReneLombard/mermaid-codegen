@@ -13,6 +13,12 @@ const jisonFileUrl: string =
 // Define the local path where the Jison file will be saved
 const jisonFilePath: string = path.join(__dirname, 'dist', 'classDiagram.jison');
 
+// Ensure the dist directory exists
+const distDir: string = path.join(__dirname, 'dist');
+if (!fs.existsSync(distDir)) {
+    fs.mkdirSync(distDir, { recursive: true });
+}
+
 // Step 1: Download the Jison file
 console.log('Starting download of Jison file from:', jisonFileUrl);
 
