@@ -47,6 +47,7 @@ export class MermaidClassDiagramParser {
         [namespace: string]: { [className: string]: ClassData };
     } = {};
     private currentNamespace: string = '';
+    private classComments: { [relationKey: string]: string } = {};
     private relationComments: { [relationKey: string]: string } = {};
     private attributeComments: { [attributeKey: string]: string } = {};
 
@@ -59,15 +60,15 @@ export class MermaidClassDiagramParser {
     public parse(mermaidContent: string): void {
         try {
             // Pre-process the content to capture comments
-            this.preprocessContent(mermaidContent);
-            this.internalParser.parse(mermaidContent);
+            const updatedContent = this.preprocessContent(mermaidContent);
+            this.internalParser.parse(updatedContent);
         } catch (error) {
             throw new Error(`Error parsing Mermaid content: ${(error as Error).message}`);
         }
     }
 
     /** Pre-processes content to capture comments and associate them with classes/attributes */
-    private preprocessContent(content: string): void {
+    private preprocessContent(content: string): string {
         const lines = content.split('\n');
         let lastComment = '';
         let currentClass = '';
@@ -75,6 +76,7 @@ export class MermaidClassDiagramParser {
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
+            const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
 
             // Track current namespace
             if (line.startsWith('namespace ')) {
@@ -82,16 +84,26 @@ export class MermaidClassDiagramParser {
                 continue;
             }
 
-            // Track current class
-            const classMatch = line.match(/class\s+(\w+)/);
+            // Track current class - look 1 line ahead to handle comments for a class that's following on the next line
+            const currentLineClassMatch = line.match(/class\s+(\w+)/);
+            const nextLineClassMatch = nextLine.match(/class\s+(\w+)/);
+            const classMatch = currentLineClassMatch || nextLineClassMatch;
             if (classMatch) {
                 currentClass = classMatch[1];
-                continue;
             }
 
             // Capture comment lines
             if (line.startsWith('%%')) {
                 lastComment = line.substring(2).trim();
+                // Remove comment line from content since the parser can't handle comments for classes, while the viewer can
+                content = content.replace(line, '');
+                continue;
+            }
+
+            // Check if comments are available for a class
+            if (currentLineClassMatch) {
+                this.classComments[`${currentNamespace}-${currentClass}`] = lastComment;
+                lastComment = '';
                 continue;
             }
 
@@ -135,6 +147,8 @@ export class MermaidClassDiagramParser {
                 lastComment = '';
             }
         }
+
+        return content;
     }
 
     /** Returns the final parsed structure with namespaces containing classes */
@@ -183,6 +197,10 @@ export class MermaidClassDiagramParser {
     addMembers(className: string, members: string[]) {
         const currentNamespace = this.currentNamespace || 'global';
         if (this.namespaces[currentNamespace]?.[className]) {
+            if (this.classComments[`${currentNamespace}-${className}`]) {
+                this.namespaces[currentNamespace][className].Comment =
+                    this.classComments[`${currentNamespace}-${className}`];
+            }
             members.reverse();
 
             members.forEach((member: string) => {

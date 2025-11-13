@@ -5,6 +5,7 @@ import { RelationData } from './relationData';
 
 /** Complete class definition with all its components and relationships */
 export interface ClassData {
+    Comment?: string;
     Name: string;
     Namespace: string;
     Type: string;
