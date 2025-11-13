@@ -6,6 +6,11 @@ using {{this}};
 
 {{#if this.Namespace}}namespace {{this.Namespace}};{{/if}}
 
+{{#if this.Comment}}
+/// <summary>
+/// {{this.Comment}}
+/// </summary>
+{{/if}}
 public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
 {
 

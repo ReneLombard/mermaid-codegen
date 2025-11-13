@@ -33,6 +33,7 @@ The logical view of the Vehicle Management System (VMS) includes the following c
 classDiagram
 
 namespace Company.VTC.Models {
+    %% representation of a vehicle
     class Vehicle {
         <<class>>
         %% vehicle brand
