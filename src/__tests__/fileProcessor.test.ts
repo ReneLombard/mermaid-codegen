@@ -59,8 +59,8 @@ describe('FileProcessor', () => {
             expect(result.csharp.templates[0]).toEqual({
                 fileName: 'class.csharp.hbs',
                 content: Buffer.from(templateContent),
-                subType: undefined, // parts[parts.length - 4] doesn't exist for 'class.csharp.hbs'
-                type: 'class', // parts[parts.length - 3] = 'class'
+                subType: undefined,
+                type: 'class',
             });
         });
 
