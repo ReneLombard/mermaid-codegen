@@ -202,7 +202,7 @@ describe('DynamicYamlLoader', () => {
             mockPath.join.mockImplementation((a: string, b: string) => `${a}/${b}`);
 
             // Mock YAML content
-            mockFs.readFileSync.mockReturnValueOnce('className: TestClass1\\nproperties: {}');
+            mockFs.readFileSync.mockReturnValueOnce('className: TestClass1\nproperties: {}');
             mockYAML.load.mockReturnValueOnce({ className: 'TestClass1', properties: {} } as any);
 
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();

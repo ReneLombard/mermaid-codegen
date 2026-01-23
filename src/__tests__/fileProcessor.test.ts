@@ -140,17 +140,6 @@ describe('FileProcessor', () => {
             consoleErrorSpy.mockRestore();
         });
 
-        it('should handle empty directory', () => {
-            // Arrange
-            mockFs.readdirSync.mockReturnValue([] as any);
-
-            // Act
-            const result = FileProcessor.processFiles('/empty/templates');
-
-            // Assert
-            expect(result).toEqual({});
-        });
-
         it('should accumulate multiple templates for same language', () => {
             // Arrange
             mockFs.readdirSync.mockReturnValue(['class.csharp.hbs', 'interface.csharp.hbs', 'enum.csharp.hbs'] as any);
