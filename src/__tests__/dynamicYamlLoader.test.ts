@@ -216,5 +216,138 @@ describe('DynamicYamlLoader', () => {
 
             consoleSpy.mockRestore();
         });
+
+        it('should handle non-existent directory', () => {
+            // Arrange
+            mockFs.existsSync.mockReturnValue(false);
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+            // Act
+            const result = DynamicYamlLoader.loadAndMergeYamlFiles('/non/existent');
+
+            // Assert
+            expect(result).toHaveLength(0);
+            expect(consoleSpy).toHaveBeenCalledWith('Found 0 YAML files');
+            consoleSpy.mockRestore();
+        });
+
+        it('should handle directory read errors gracefully', () => {
+            // Arrange
+            mockFs.existsSync.mockReturnValue(true);
+            mockFs.readdirSync.mockImplementation(() => {
+                throw new Error('Permission denied');
+            });
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+            // Act & Assert
+            expect(() => DynamicYamlLoader.loadAndMergeYamlFiles('/test/error')).toThrow('Permission denied');
+            consoleSpy.mockRestore();
+        });
+
+        it('should handle YAML parse errors gracefully', () => {
+            // Arrange
+            mockFs.existsSync.mockReturnValue(true);
+            mockFs.readdirSync.mockReturnValue(['invalid.yml'] as any);
+            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
+            mockFs.readFileSync.mockReturnValue('invalid: yaml: content:');
+
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+            // Mock YAML.load to throw an error for this specific test
+            mockYAML.load.mockImplementationOnce(() => {
+                throw new Error('Invalid YAML');
+            });
+
+            // Act & Assert - The function should handle the error gracefully
+            expect(() => {
+                DynamicYamlLoader.loadAndMergeYamlFiles('/test/invalid');
+            }).toThrow('Invalid YAML');
+
+            // Restore console spies
+            consoleSpy.mockRestore();
+            consoleErrorSpy.mockRestore();
+        });
+
+        it('should handle files with various YAML extensions', () => {
+            // Arrange
+            mockFs.existsSync.mockReturnValue(true);
+            mockFs.readdirSync.mockReturnValue(['file1.yml', 'file2.yaml', 'file3.txt'] as any);
+            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
+            mockYAML.load.mockReturnValue({ Name: 'TestClass', Type: 'class' } as any);
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+            // Act
+            const result = DynamicYamlLoader.loadAndMergeYamlFiles('/test/mixed');
+
+            // Assert
+            expect(result).toHaveLength(1); // Only .yml files should be processed
+            expect(consoleSpy).toHaveBeenCalledWith('Found 1 YAML files');
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('mergeDeep edge cases', () => {
+        it('should handle null and undefined values', () => {
+            // Arrange
+            const target: any = { prop1: 'value1', prop2: null };
+            const source: any = { prop2: 'newValue', prop3: undefined };
+
+            // Act
+            const result = DynamicYamlLoader.mergeDeep(target, source);
+
+            // Assert
+            expect(result.prop1).toBe('value1');
+            expect(result.prop2).toBe('newValue');
+            expect(result.prop3).toBeUndefined();
+        });
+
+        it('should handle circular references safely', () => {
+            // Arrange
+            const target: any = { prop1: 'value1' };
+            target.self = target;
+            const source = { prop2: 'value2' };
+
+            // Act & Assert
+            expect(() => DynamicYamlLoader.mergeDeep(target, source)).not.toThrow();
+        });
+
+        it('should merge arrays by replacement', () => {
+            // Arrange
+            const target = { items: ['a', 'b'] };
+            const source = { items: ['c', 'd'] };
+
+            // Act
+            const result = DynamicYamlLoader.mergeDeep(target, source);
+
+            // Assert
+            expect(result.items).toEqual(['c', 'd']);
+        });
+
+        it('should handle primitive type conflicts', () => {
+            // Arrange
+            const target: any = { prop: 'string' };
+            const source: any = { prop: 123 };
+
+            // Act
+            const result = DynamicYamlLoader.mergeDeep(target, source);
+
+            // Assert
+            expect(result.prop).toBe(123);
+        });
+
+        it('should preserve object references when merging', () => {
+            // Arrange
+            const sharedObject = { shared: 'value' };
+            const target: any = { ref: sharedObject };
+            const source: any = { newProp: 'newValue' };
+
+            // Act
+            const result = DynamicYamlLoader.mergeDeep(target, source);
+
+            // Assert
+            expect(result.ref).toBe(sharedObject);
+            expect(result.newProp).toBe('newValue');
+        });
     });
 });
