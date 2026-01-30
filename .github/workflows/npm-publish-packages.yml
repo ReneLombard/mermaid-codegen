@@ -1,61 +1,65 @@
 name: Publish npm package and deploy docs
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: write
-  packages: write
+    contents: write
+    packages: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: cd src && npm i
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+            - run: cd src && npm i
+            - name: Run tests
+              run: cd src && npm run test:ci
+            - name: Build project
+              run: cd src && npm run build
 
-  version-bump:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: cd src && npm i
-      
-      - name: Configure Git Identity (ensure it is applied)
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
-      - name: Bump version and generate changelog
-        run: |
-            cd src
-            npx standard-version
-            git push --follow-tags origin main && npm run build && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.PUBLISHING_TOKEN }}
-  deploy-docs:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install docs dependencies
-        run: cd docs && npm install
-      - name: Build VitePress site
-        run: cd docs && npm run docs:build
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/.vitepress/dist
+    version-bump:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org/
+            - run: cd src && npm i
+
+            - name: Configure Git Identity (ensure it is applied)
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Bump version and generate changelog
+              run: |
+                  cd src
+                  npx standard-version
+                  git push --follow-tags origin main && npm run build && npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.PUBLISHING_TOKEN }}
+    deploy-docs:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+            - name: Install docs dependencies
+              run: cd docs && npm install
+            - name: Build VitePress site
+              run: cd docs && npm run docs:build
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v4
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: docs/.vitepress/dist
