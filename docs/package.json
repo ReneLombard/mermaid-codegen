@@ -10,5 +10,9 @@
   },
   "dependencies": {
     "vitepress-plugin-mermaid": "^2.0.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ReneLombard/mermaid-codegen"
   }
 }
