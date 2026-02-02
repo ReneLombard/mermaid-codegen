@@ -23,8 +23,10 @@ jobs:
               with:
                   node-version: 24
             - run: cd src && npm i
-            - name: Run all tests (unit + integration)
-              run: cd src && npm test
+            - name: Run tests
+              run: cd src && npm run test:ci
+            - name: Run integration tests
+              run: cd src && npm run test:cucumber
             - name: Build project
               run: cd src && npm run build
 
