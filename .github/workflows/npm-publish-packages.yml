@@ -20,6 +20,10 @@ jobs:
               with:
                   node-version: 20
             - run: cd src && npm i
+            - name: Run tests
+              run: cd src && npm run test:ci
+            - name: Build project
+              run: cd src && npm run build
 
     version-bump:
         needs: build
@@ -45,6 +49,7 @@ jobs:
                   git push --follow-tags origin main
                   npm run build
                   npm publish --provenance --access public --registry https://registry.npmjs.org/
+
     deploy-docs:
         needs: build
         runs-on: ubuntu-latest
