@@ -1,7 +1,10 @@
-name: Publish npm package and deploy docs
+name: Build, Test, and Publish
 
 on:
     push:
+        branches:
+            - main
+    pull_request:
         branches:
             - main
     workflow_dispatch:
@@ -20,14 +23,15 @@ jobs:
               with:
                   node-version: 24
             - run: cd src && npm i
-            - name: Run tests
-              run: cd src && npm run test:ci
+            - name: Run all tests (unit + integration)
+              run: cd src && npm test
             - name: Build project
               run: cd src && npm run build
 
     version-bump:
         needs: build
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
@@ -53,6 +57,7 @@ jobs:
     deploy-docs:
         needs: build
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
