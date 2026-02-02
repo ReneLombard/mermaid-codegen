@@ -5,6 +5,10 @@
     "bin": {
         "mermaid-codegen": "./dist/index.js"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ReneLombard/mermaid-codegen"
+    },
     "scripts": {
         "build": "npm run process-jison && tsc",
         "process-jison": "node -r ts-node/register processJison.ts",
