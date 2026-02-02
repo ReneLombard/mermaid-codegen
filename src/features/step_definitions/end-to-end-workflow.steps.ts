@@ -56,6 +56,23 @@ Given('I have custom template configurations', async function (this: CustomWorld
 
     // Create custom configuration file
     const customConfig = {
+        language: 'custom',
+        extension: 'custom',
+        namespace: {
+            prefixToIgnore: 'Company.VTC',
+        },
+        mappings: {
+            Scope: {
+                Public: 'public',
+                Private: 'private',
+                Protected: 'protected',
+            },
+            Type: {
+                Number: 'int',
+                String: 'string',
+                'REGEX:~(.*)~': '<$1>',
+            },
+        },
         naming: {
             convention: 'PascalCase',
             prefix: 'VTC',
@@ -68,7 +85,7 @@ Given('I have custom template configurations', async function (this: CustomWorld
         },
     };
 
-    await fs.writeFile(path.join(customConfigDir, 'config.json'), JSON.stringify(customConfig, null, 2));
+    await fs.writeFile(path.join(customConfigDir, 'config.custom.json'), JSON.stringify(customConfig, null, 2));
 
     // Create custom template with configuration support
     const customTemplate = `
