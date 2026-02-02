@@ -47,48 +47,33 @@ describe('CodeGenerator', () => {
     describe('generate', () => {
         it('should handle missing input directory', () => {
             // Arrange
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             mockFs.existsSync.mockReturnValue(false);
 
-            // Act
-            codeGenerator.generate(mockOptions);
-
-            // Assert
-            expect(consoleSpy).toHaveBeenCalledWith('Error: Input file directory does not exist');
-            consoleSpy.mockRestore();
+            // Act & Assert
+            expect(() => codeGenerator.generate(mockOptions)).toThrow('Input file directory does not exist');
         });
 
         it('should handle missing templates directory', () => {
             // Arrange
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             mockFs.existsSync
                 .mockReturnValueOnce(true) // input exists (first call)
                 .mockReturnValueOnce(false) // templates don't exist
                 .mockReturnValue(true); // any other calls return true
 
-            // Act
-            codeGenerator.generate(mockOptions);
-
-            // Assert
-            expect(consoleSpy).toHaveBeenCalledWith('Error: Templates directory does not exist');
-            consoleSpy.mockRestore();
+            // Act & Assert
+            expect(() => codeGenerator.generate(mockOptions)).toThrow('Templates directory does not exist');
         });
 
         it('should handle missing output directory', () => {
             // Arrange
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             mockFs.existsSync
                 .mockReturnValueOnce(true) // input exists (first call)
                 .mockReturnValueOnce(true) // templates exist (second call)
                 .mockReturnValueOnce(false) // output doesn't exist (third call)
                 .mockReturnValue(true); // any other calls return true
 
-            // Act
-            codeGenerator.generate(mockOptions);
-
-            // Assert
-            expect(consoleSpy).toHaveBeenCalledWith('Error: Output directory does not exist');
-            consoleSpy.mockRestore();
+            // Act & Assert
+            expect(() => codeGenerator.generate(mockOptions)).toThrow('Output directory does not exist');
         });
 
         it('should register Handlebars helpers and generate code', () => {

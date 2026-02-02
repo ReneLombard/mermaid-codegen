@@ -19,7 +19,30 @@ export class InitializeService {
             console.log(`Target directory: ${opts.directory}`);
         }
 
-        // Check whether directory exists, if not try to create it
+        // Look for templates in multiple possible locations FIRST
+        const possibleTemplateDirs = [
+            path.join(__dirname, 'Templates', opts.language),
+            path.join(__dirname, '../Templates', opts.language),
+            path.join(__dirname, '../../Templates', opts.language),
+            path.resolve(process.cwd(), 'Templates', opts.language),
+            path.resolve(process.cwd(), '../Templates', opts.language),
+        ];
+
+        let templateDir: string | null = null;
+
+        // Find the first existing template directory
+        for (const dir of possibleTemplateDirs) {
+            if (fs.existsSync(dir)) {
+                templateDir = dir;
+                break;
+            }
+        }
+
+        if (!templateDir) {
+            throw new Error(`Template for language ${opts.language} does not exist.`);
+        }
+
+        // Only create directory AFTER we've validated templates exist
         if (opts.directory && !fs.existsSync(opts.directory)) {
             // If the directory fails to be created, throw an error
             try {
@@ -29,15 +52,10 @@ export class InitializeService {
             }
         }
 
-        const templateDir: string = path.join(__dirname, 'Templates', opts.language);
         const outputDir: string = opts.directory!; // Using non-null assertion since we know it exists at this point
 
-        if (!fs.existsSync(templateDir)) {
-            throw new Error(`Template for language ${opts.language} does not exist.`);
-        }
-
         fs.readdirSync(templateDir).forEach((file: string) => {
-            const srcPath: string = path.join(templateDir, file);
+            const srcPath: string = path.join(templateDir!, file);
             const destPath: string = path.join(outputDir, file);
             fs.copyFileSync(srcPath, destPath);
         });

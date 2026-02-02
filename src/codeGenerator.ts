@@ -28,16 +28,13 @@ export class CodeGenerator {
         this.templates = opts.templates;
 
         if (!fs.existsSync(this.input) && !fs.existsSync(path.join(__dirname, this.input))) {
-            console.log('Error: Input file directory does not exist');
-            return;
+            throw new Error('Input file directory does not exist');
         }
         if (!fs.existsSync(opts.templates)) {
-            console.log('Error: Templates directory does not exist');
-            return;
+            throw new Error('Templates directory does not exist');
         }
         if (!fs.existsSync(opts.output)) {
-            console.log('Error: Output directory does not exist');
-            return;
+            throw new Error('Output directory does not exist');
         }
 
         const inputFileDirectoryNormalized: string = fs.existsSync(this.input)
@@ -50,6 +47,10 @@ export class CodeGenerator {
 
         // Register Handlebars helpers
         Handlebars.registerHelper('toLowerCase', (str: string) => str.toLowerCase());
+        Handlebars.registerHelper(
+            'capitalize',
+            (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(),
+        );
         Handlebars.registerHelper('isEq', (str1: any, str2: any) => str1 === str2);
         Handlebars.registerHelper('isArray', (str: string) => str?.toUpperCase() === 'ARRAY');
         Handlebars.registerHelper('isDictionary', (str: string) => str?.toUpperCase().trim().startsWith('DICTIONARY'));
