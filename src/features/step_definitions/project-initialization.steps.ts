@@ -1,4 +1,4 @@
-import { Given, Then, When } from '@cucumber/cucumber';
+import { Given, Then } from '@cucumber/cucumber';
 import * as assert from 'assert';
 import * as path from 'path';
 import { CustomWorld } from '../support/world';
@@ -20,18 +20,6 @@ Given('I have specified {string} as the project directory', function (this: Cust
     this.testData.projectDir = directory;
 });
 
-When('I run the initialize command', async function (this: CustomWorld) {
-    const language = this.testData.language || 'C#';
-    const directory = this.testData.projectDir || 'test-project';
-
-    const command = `init --language=${language.toLowerCase()} --project-dir=${directory}`;
-    await this.runCommand(command);
-});
-
-When('I run the list languages command', async function (this: CustomWorld) {
-    await this.runCommand('list-languages');
-});
-
 Then('a new project structure should be created', async function (this: CustomWorld) {
     const directory = this.testData.projectDir || 'test-project';
     const projectDir = path.join(this.workspaceDir, directory);
@@ -43,15 +31,11 @@ Then('a new project structure should be created', async function (this: CustomWo
 });
 
 Then('the project should contain C# specific templates', async function (this: CustomWorld) {
-    // Check if C# templates were copied/created in the project
     const directory = this.testData.projectDir || 'test-project';
     const projectDir = path.join(this.workspaceDir, directory);
 
-    // This is implementation dependent - for now we just verify the directory exists
     const exists = await this.fileExists(projectDir);
     assert.strictEqual(exists, true);
 
     this.attach('C# templates verified');
 });
-
-// Duplicate steps removed - using common.steps.ts versions
