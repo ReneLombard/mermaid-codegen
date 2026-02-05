@@ -55,6 +55,13 @@ export class CodeGenerator {
         Handlebars.registerHelper('isArray', (str: string) => str?.toUpperCase() === 'ARRAY');
         Handlebars.registerHelper('isDictionary', (str: string) => str?.toUpperCase().trim().startsWith('DICTIONARY'));
         Handlebars.registerHelper('dictionaryKeyType', (str: string) => str.split('(')[1].split(')')[0]);
+        Handlebars.registerHelper('startsWith', (str: string, prefix: string) => str?.startsWith(prefix));
+        Handlebars.registerHelper('substring', (str: string, start: number, end?: number) => {
+            if (end === -1) {
+                return str?.substring(start, str.length - 1);
+            }
+            return str?.substring(start, end);
+        });
         Handlebars.registerHelper({
             eq: (v1: any, v2: any) => v1 === v2,
             ne: (v1: any, v2: any) => v1 !== v2,

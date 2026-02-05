@@ -106,6 +106,56 @@ Use for similar scenarios with different input/output combinations:
 - Add Examples table with parameter combinations
 - Include descriptive example names in tables
 
+## Input/Output Content Guidelines
+
+### Inline Content Preference
+
+When specifying input or output in files, include the actual content inline rather than referencing external files. This
+improves readability and traceability.
+
+**Preferred approach - inline Mermaid diagram:**
+
+````gherkin
+Given the following class diagram:
+    ```mermaid
+    classDiagram
+
+    namespace Company.VTC.Models {
+        class Vehicle {
+            <<class>>
+            +String Make
+            +String Model
+            +Number Year
+            +String Status
+        }
+    }
+
+    namespace Company.VTC.Controllers {
+        class VehiclesController {
+            <<endpoint>>
+            +GetVehicleByMake(string make): Task~ActionResult~Vehicle~~
+            +GetAllVehicles(): Task~ActionResult~List~Vehicle~~~
+            +AddVehicle(Vehicle vehicle): Task~ActionResult~Vehicle~~
+        }
+    }
+
+    VehiclesController --> Vehicle : returns
+    ```
+````
+
+**Avoid file references:**
+
+```gherkin
+Given the class diagram from file "vehicle-model.mmd"
+```
+
+This approach ensures that:
+
+- Content is visible without external dependencies
+- Feature files are self-contained
+- Review and debugging are easier
+- Version control tracks content changes directly
+
 ## Example Structure Template
 
 ```gherkin
@@ -153,6 +203,7 @@ Before completing feature files, verify:
 - [ ] Indentation is consistent
 - [ ] Scenarios are human-readable and executable
 - [ ] No overlap between background and scenario descriptions
+- [ ] Input/output content is included inline, not referenced externally
 
 ## Integration Notes
 

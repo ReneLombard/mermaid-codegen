@@ -66,17 +66,28 @@ Given('the complete mermaid-codegen toolchain is available', async function (thi
 }`;
     await fs.promises.writeFile(path.join(csharpTemplatesDir, 'class.csharp.hbs'), classTemplate, 'utf-8');
 
-    const endpointTemplate = `namespace {{Namespace}}
+    const endpointTemplate = `using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+
+namespace {{Namespace}}
 {
     [ApiController]
     [Route("[controller]")]
     public partial class {{Name}} : ControllerBase
     {
 {{#each Methods}}
-        public async Task<ActionResult<{{Type}}>> {{Name}}({{#each Arguments}}{{Type}} {{Name}}{{#unless @last}}, {{/unless}}{{/each}})
+        [HttpGet]
+        public async Task<ActionResult<{{Type}}>> {{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var result = await On{{Name}}({{#each Arguments}}{{Name}}, {{/each}}cancellationToken);
+            return Ok(result);
         }
+
+        protected partial Task<{{Type}}> On{{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default);
+
 {{/each}}
     }
 }`;
@@ -347,6 +358,7 @@ Namespace: {{Namespace}}
             } else if (filePath.includes('endpoint')) {
                 templateContent = `using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -357,11 +369,15 @@ namespace {{Namespace}}
     public partial class {{Name}} : ControllerBase
     {
 {{#each Methods}}
-        public partial async Task<ActionResult<{{Type}}>> {{Name}}({{#each Arguments}}{{Type}} {{Name}}{{#unless @last}}, {{/unless}}{{/each}})
+        [HttpGet]
+        public async Task<ActionResult<{{{Type}}}>> {{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default)
         {
-            // Implementation goes here
-            throw new NotImplementedException();
+            var result = await On{{Name}}({{#each Arguments}}{{Name}}, {{/each}}cancellationToken);
+            return Ok(result);
         }
+
+        protected partial Task<{{{Type}}}> On{{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default);
+
 {{/each}}
     }
 }`;

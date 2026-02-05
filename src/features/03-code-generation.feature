@@ -97,6 +97,7 @@ Background: Code generation testing environment
                 """
                 using System;
                 using System.Collections.Generic;
+                using System.Threading;
                 using System.Threading.Tasks;
                 using Microsoft.AspNetCore.Mvc;
                 
@@ -106,16 +107,24 @@ Background: Code generation testing environment
                     [Route("[controller]")]
                     public partial class VehicleController : ControllerBase
                     {
-                        public partial async Task<ActionResult<List&lt;Vehicle&gt;>> GetVehicles()
+                        [HttpGet]
+                        public async Task<ActionResult<List<Vehicle>>> GetVehicles(CancellationToken cancellationToken = default)
                         {
-                            // Implementation goes here
-                            throw new NotImplementedException();
+                            var result = await OnGetVehicles(cancellationToken);
+                            return Ok(result);
                         }
-                        public partial async Task<ActionResult<Vehicle>> GetVehicle(int id)
+
+                        protected partial Task<List<Vehicle>> OnGetVehicles(CancellationToken cancellationToken = default);
+
+                        [HttpGet]
+                        public async Task<ActionResult<Vehicle>> GetVehicle(int id, CancellationToken cancellationToken = default)
                         {
-                            // Implementation goes here
-                            throw new NotImplementedException();
+                            var result = await OnGetVehicle(id, cancellationToken);
+                            return Ok(result);
                         }
+
+                        protected partial Task<Vehicle> OnGetVehicle(int id, CancellationToken cancellationToken = default);
+
                     }
                 }
                 """
