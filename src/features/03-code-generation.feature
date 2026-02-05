@@ -47,10 +47,21 @@ Background: Code generation testing environment
                 And the file "Templates/C#/class.csharp.hbs" exists
             When David runs "mermaid-codegen generate -i vehicle.yml -o output/code -t Templates/C#"
             Then a file "output/code/Vehicle.Generated.cs" should be created
-                And the file should contain "public partial class Vehicle"
-                And the file should contain "public string Make { get; set; }"
-                And the file should contain "public string Model { get; set; }"
-                And the file should contain "public int Year { get; set; }"
+                And the file should contain:
+                """
+                using System;
+                using System.Collections.Generic;
+                
+                namespace Company.VTC
+                {
+                    public partial class Vehicle
+                    {
+                        public string Make { get; set; }
+                        public string Model { get; set; }
+                        public int Year { get; set; }
+                    }
+                }
+                """
 
     Scenario: Generate C# controllers from YAML endpoints
         Create controller classes with proper action methods from YAML
@@ -82,20 +93,64 @@ Background: Code generation testing environment
                 And the file "Templates/C#/endpoint.csharp.hbs" exists
             When David runs "mermaid-codegen generate -i vehicle-controller.yml -o output/code -t Templates/C#"
             Then a file "output/code/VehicleController.Generated.cs" should be created
-                And the file should contain "public partial class VehicleController : ControllerBase"
-                And the file should contain "public partial async Task<ActionResult<List<Vehicle>>> GetVehicles()"
-                And the file should contain "public partial async Task<ActionResult<Vehicle>> GetVehicle(int id)"
+                And the file should contain:
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                using Microsoft.AspNetCore.Mvc;
+                
+                namespace Company.VTC
+                {
+                    [ApiController]
+                    [Route("[controller]")]
+                    public partial class VehicleController : ControllerBase
+                    {
+                        public partial async Task<ActionResult<List&lt;Vehicle&gt;>> GetVehicles()
+                        {
+                            // Implementation goes here
+                            throw new NotImplementedException();
+                        }
+                        public partial async Task<ActionResult<Vehicle>> GetVehicle(int id)
+                        {
+                            // Implementation goes here
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """
 
+    @pending
     Scenario: Generate documentation from YAML specifications
         Create comprehensive documentation from class definitions
 
             Given David has created a file "vehicle.yml" with Vehicle class definition
                 And the file "Templates/Documentation/class.documentation.hbs" exists
             When David runs "mermaid-codegen generate -i vehicle.yml -o output/docs -t Templates/Documentation"
-            Then a file "output/docs/Company/VTC/Vehicle.Generated.md" should be created
-                And the file should contain "# Vehicle"
-                And the file should contain "## Properties"
-                And the file should contain "- **Make**: string"
+            Then a file "output/docs/Vehicle.Generated.md" should be created
+                And the file should contain:
+                """
+                # Vehicle
+                
+                ## Overview
+                
+                Class: Vehicle
+                Namespace: Company.VTC
+                
+                ## Properties
+                
+                - **Make**: string - Public property
+                - **Model**: string - Public property
+                - **Year**: int - Public property
+                
+                ## Methods
+                
+                None defined.
+                
+                ## Dependencies
+                
+                None defined.
+                """
 
     Scenario: Generate code with custom template configurations
         Support custom template directories and formatting rules

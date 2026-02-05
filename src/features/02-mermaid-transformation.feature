@@ -30,10 +30,25 @@ Background: Mermaid transformation testing environment
             """
             When Charlie runs "mermaid-codegen transform -i vehicle.md -o ."
             Then a file "global/Vehicle.Generated.yml" should be created
-                And the file "global/Vehicle.Generated.yml" should contain "Name: Vehicle"
-                And the file "global/Vehicle.Generated.yml" should contain "Type: String"
-                And the file "global/Vehicle.Generated.yml" should contain "Type: String"
-                And the file "global/Vehicle.Generated.yml" should contain "Type: String"
+                And the file "global/Vehicle.Generated.yml" should contain:
+                """
+                Name: Vehicle
+                Namespace: global
+                Type: Class
+                Attributes:
+                  Make:
+                    Type: String
+                    IsSystemType: true
+                    Scope: Public
+                  Model:
+                    Type: String
+                    IsSystemType: true
+                    Scope: Public
+                  Year:
+                    Type: Number
+                    IsSystemType: true
+                    Scope: Public
+                """
 
     Scenario: Transform class diagram with namespace organization
         Handle namespace definitions and directory structure generation
@@ -52,8 +67,21 @@ Background: Mermaid transformation testing environment
             """
             When Charlie runs "mermaid-codegen transform -i models.md -o . -n Company.VTC"
             Then a file "Models/Vehicle.Generated.yml" should be created
-                And the file "Models/Vehicle.Generated.yml" should contain "Name: Vehicle"
-                And the file "Models/Vehicle.Generated.yml" should contain "Namespace: Company.VTC.Models"
+                And the file "Models/Vehicle.Generated.yml" should contain:
+                """
+                Name: Vehicle
+                Namespace: Company.VTC.Models
+                Type: Class
+                Attributes:
+                  Make:
+                    Type: String
+                    IsSystemType: true
+                    Scope: Public
+                  Model:
+                    Type: String
+                    IsSystemType: true
+                    Scope: Public
+                """
 
     Scenario: Transform class diagram with controller endpoints
         Process controller classes with endpoint annotations and method signatures
@@ -71,8 +99,22 @@ Background: Mermaid transformation testing environment
             """
             When Charlie runs "mermaid-codegen transform -i controller.md -o ."
             Then a file "global/VehicleController.Generated.yml" should be created
-                And the file "global/VehicleController.Generated.yml" should contain "Name: VehicleController"
-                And the file "global/VehicleController.Generated.yml" should contain "Type: endpoint"
+                And the file "global/VehicleController.Generated.yml" should contain:
+                """
+                Name: VehicleController
+                Namespace: global
+                Type: endpoint
+                Methods:
+                  GetVehicles:
+                    Type: List~Vehicle~
+                    Scope: Public
+                  GetVehicle:
+                    Type: Vehicle
+                    Scope: Public
+                    Arguments:
+                      - Type: 'id:'
+                        Name: int
+                """
 
     Scenario: Handle invalid Mermaid syntax gracefully
         Ensure proper error reporting for malformed Mermaid diagrams

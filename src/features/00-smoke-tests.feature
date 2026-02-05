@@ -39,7 +39,17 @@ Background: Basic smoke test environment setup
             When Bob runs "mermaid-codegen transform -i test-class.md -o ."
             Then a YAML file "global/TestClass.Generated.yml" should be created
                 And the CLI should return exit code 0
-                And the YAML file "global/TestClass.Generated.yml" should contain "TestClass"
+                And the YAML file "global/TestClass.Generated.yml" should contain:
+                """
+                Name: TestClass
+                Namespace: global
+                Type: Class
+                Attributes:
+                  Name:
+                    Type: String
+                    IsSystemType: true
+                    Scope: Public
+                """
 
     @smoke @generate
     Scenario: Basic code generation capability

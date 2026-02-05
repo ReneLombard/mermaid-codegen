@@ -47,8 +47,8 @@ Background: End-to-end workflow testing environment
             When Frank runs "mermaid-codegen transform -i comprehensive.md -o output/yml"
             And Frank runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
             Then files "output/yml/Company/VTC/Models/Vehicle.yml" and "output/yml/Company/VTC/Controllers/VehiclesController.yml" should be created
-                And a file "output/code/Models/Vehicle.Generated.cs" should be created
-                And a file "output/code/Controllers/VehiclesController.Generated.cs" should be created
+                And a file "output/code/Company/VTC/Models/Vehicle.Generated.cs" should be created
+                And a file "output/code/Company/VTC/Controllers/VehiclesController.Generated.cs" should be created
                 And Frank can compile the generated code with "dotnet build output/code" successfully
                 And the controller should reference the Vehicle model correctly
 
