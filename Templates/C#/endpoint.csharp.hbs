@@ -12,7 +12,7 @@ namespace {{this.Namespace}}
 
 [ApiController]
 [Route("api/[controller]")]
-public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+public partial class {{Name}} : ControllerBase{{#if this.Inheritance}}, {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
 {
     
 {{!-- Compositions --}}
