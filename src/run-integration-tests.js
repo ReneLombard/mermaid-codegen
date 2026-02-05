@@ -102,9 +102,18 @@ class IntegrationTestRunner {
             console.log(`📊 Test report generated: ${reportPath}`);
 
             // Try to open the report in the default browser (optional)
-            if (process.platform === 'win32' && !process.argv.includes('--no-open')) {
+            if (!process.argv.includes('--no-open')) {
                 try {
-                    execSync(`start ${reportPath}`, { stdio: 'ignore' });
+                    if (process.platform === 'win32') {
+                        // Windows: use "start" via the shell
+                        execSync(`start "" "${reportPath}"`, { stdio: 'ignore', shell: true });
+                    } else if (process.platform === 'darwin') {
+                        // macOS: use "open"
+                        execSync(`open "${reportPath}"`, { stdio: 'ignore' });
+                    } else {
+                        // Linux and other Unix-like systems: use "xdg-open" if available
+                        execSync(`xdg-open "${reportPath}"`, { stdio: 'ignore' });
+                    }
                 } catch (error) {
                     // Ignore error if can't open browser
                 }
