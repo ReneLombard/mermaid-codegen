@@ -1,22 +1,26 @@
+const DEFAULT_TIMEOUT = 60000;
+
+const commonConfig = {
+    paths: ['features/**/*.feature'],
+    parallel: 1,
+    timeout: DEFAULT_TIMEOUT
+};
+
 const config = {
     default: {
+        ...commonConfig,
         require: ['dist/features/step_definitions/**/*.js', 'dist/features/support/**/*.js'],
         format: ['progress-bar', 'html:cucumber-report.html', 'json:cucumber-report.json'],
-        paths: ['features/**/*.feature'],
         failFast: false,
-        parallel: 1,
-        retry: 0,
-        timeout: 60000
+        retry: 0
     },
     dev: {
+        ...commonConfig,
         require: ['features/step_definitions/**/*.ts', 'features/support/**/*.ts'],
         requireModule: ['ts-node/register'],
         format: ['progress-bar'],
-        paths: ['features/**/*.feature'],
         failFast: true,
-        parallel: 1,
-        retry: 1,
-        timeout: 60000
+        retry: 1
     }
 };
 
