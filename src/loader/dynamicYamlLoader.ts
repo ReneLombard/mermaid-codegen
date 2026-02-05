@@ -19,7 +19,7 @@ interface MergedClasses {
  */
 export class DynamicYamlLoader {
     /** Recursively loads all YAML files from a directory and merges classes with the same name */
-    static loadAndMergeYamlFiles(directory: string): DynamicYamlClass[] {
+    static loadAndMergeYamlFiles(inputPath: string): DynamicYamlClass[] {
         function getAllFiles(dir: string, fileList: string[] = []): string[] {
             const files = fs.readdirSync(dir);
 
@@ -36,7 +36,24 @@ export class DynamicYamlLoader {
             return fileList;
         }
 
-        const files = getAllFiles(directory);
+        let files: string[];
+
+        // Check if input is a single file or a directory
+        const stats = fs.statSync(inputPath);
+        if (stats.isFile()) {
+            // Single file
+            if (path.extname(inputPath) === '.yml' || path.extname(inputPath) === '.yaml') {
+                files = [inputPath];
+            } else {
+                throw new Error(`Invalid file type: ${inputPath}. Only .yml and .yaml files are supported.`);
+            }
+        } else if (stats.isDirectory()) {
+            // Directory
+            files = getAllFiles(inputPath);
+        } else {
+            throw new Error(`Invalid input path: ${inputPath}`);
+        }
+
         console.log(`Found ${files.length} YAML files`);
 
         const mergedClasses: MergedClasses = {};

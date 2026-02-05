@@ -1,44 +1,74 @@
 Feature: File Watching
-  As a developer
-  I want to watch for file changes
-  So that code is automatically regenerated when I modify Mermaid or YAML files
+    Automated file monitoring and regeneration for development workflow.
+    Watches Mermaid and YAML files for changes and triggers automatic regeneration.
+    Supports real-time development with immediate feedback on file modifications.
+    Handles file creation, modification, and deletion events gracefully.
 
-  Background:
-    Given I have a clean test workspace
-    And I have initial Mermaid and YAML files
+Background: File watching system testing environment
+    Test subject: File system watcher and automatic regeneration pipeline
+    Test tools: File system monitoring, change detection, process management
+    Involved applications: File watcher service, transformation engine, code generator
+    Test scope: File monitoring, change detection, and automated processing
 
-  Scenario: Watch Mermaid file changes
-    Given I have started the watch command
-    When I modify a Mermaid file
-    Then the YAML file should be automatically updated
-    And the generated code should be automatically updated
+        Given Emma has set up a clean test workspace
+            And Emma has prepared initial Mermaid and YAML files
+            And the file watching service is available
 
-  Scenario: Watch YAML file changes
-    Given I have started the watch command
-    When I modify a YAML file
-    Then the generated code should be automatically updated
-    And the timestamp of output files should be newer
+    Scenario: Watch Mermaid file modifications automatically
+        Monitor Mermaid files and trigger YAML regeneration on changes
 
-  Scenario: Watch with multiple file changes
-    Given I have started the watch command
-    When I modify multiple Mermaid files
-    Then all corresponding YAML files should be updated
-    And all corresponding code files should be updated
+            Given Emma has created a file "vehicle.md" with a simple Vehicle class
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And the watch process is running
+            When Emma modifies the file "vehicle.md" by adding a new property
+            Then a file "output/vehicle.yml" should be updated within 5 seconds
+                And the timestamp of "output/vehicle.yml" should be newer than "vehicle.md"
+                And a file "output/code/Vehicle.Generated.cs" should be updated
 
-  Scenario: Watch handles file creation
-    Given I have started the watch command
-    When I create a new Mermaid file
-    Then a new YAML file should be created
-    And new code files should be generated
+    Scenario: Watch YAML file modifications for code updates
+        Monitor YAML files and trigger code regeneration on changes
 
-  Scenario: Watch handles file deletion
-    Given I have started the watch command
-    When I delete a Mermaid file
-    Then the corresponding files should be cleaned up appropriately
+            Given Emma has created a file "vehicle.yml" with Vehicle class definition
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And the watch process is running
+            When Emma modifies "vehicle.yml" by changing a property type
+            Then a file "output/code/Vehicle.Generated.cs" should be updated within 5 seconds
+                And the timestamp of the generated file should be newer than "vehicle.yml"
 
-  @manual
-  Scenario: Stop watching gracefully
-    Given I have started the watch command
-    When I stop the watch process
-    Then the watching should stop cleanly
-    And no background processes should remain
+    Scenario: Watch multiple file changes simultaneously
+        Handle concurrent file modifications across multiple files
+
+            Given Emma has created files "vehicle.md" and "driver.md" with class definitions
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+            When Emma modifies both "vehicle.md" and "driver.md" simultaneously
+            Then both "output/vehicle.yml" and "output/driver.yml" should be updated
+                And both "output/code/Vehicle.Generated.cs" and "output/code/Driver.Generated.cs" should be updated
+                And no file locking conflicts should occur
+
+    Scenario: Watch handles new file creation events
+        Detect and process newly created files in watched directories
+
+            Given Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+            When Emma creates a new file "product.md" with a Product class definition
+            Then a file "output/product.yml" should be created within 5 seconds
+                And a file "output/code/Product.Generated.cs" should be created
+
+    Scenario: Watch handles file deletion events appropriately
+        Clean up generated files when source files are removed
+
+            Given Emma has created a file "temp-class.md" with a class definition
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And the corresponding output files exist
+            When Emma deletes the file "temp-class.md"
+            Then the file "output/temp-class.yml" should be removed within 5 seconds
+                And the file "output/code/TempClass.Generated.cs" should be removed
+
+        @manual
+        Scenario: Stop watching process gracefully
+            Ensure clean shutdown of file watching service
+
+                Given Emma has started "mermaid-codegen watch" as process with PID
+                When Emma sends SIGTERM signal to the watch process
+                Then the watch process should exit with code 0 within 10 seconds
+                    And no background processes should remain running
+                    And all file handles should be properly released

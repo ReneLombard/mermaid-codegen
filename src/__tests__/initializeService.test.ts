@@ -106,6 +106,9 @@ describe('InitializeService', () => {
             expect(() => initializeService.runInitializeAndReturnExitCode(opts)).toThrow(
                 'Failed to create directory: ./invalid-path',
             );
+
+            // Clean up the mock for other tests
+            mockFs.mkdirSync.mockRestore();
         });
 
         it('should throw error if template directory does not exist', () => {
@@ -132,6 +135,7 @@ describe('InitializeService', () => {
 
             mockFs.existsSync.mockReturnValue(true);
             mockFs.readdirSync.mockReturnValue(['app.js', 'package.json', 'README.md'] as any);
+            mockFs.mkdirSync.mockImplementation(() => '/mock/path'); // Reset mkdirSync to work normally
             const copyFileSpy = mockFs.copyFileSync.mockImplementation(() => {});
 
             // Act
@@ -143,17 +147,17 @@ describe('InitializeService', () => {
             expect(copyFileSpy).toHaveBeenNthCalledWith(
                 1,
                 expect.stringContaining('Templates/javascript/app.js'),
-                './js-project/app.js',
+                './js-project/Templates/javascript/app.js',
             );
             expect(copyFileSpy).toHaveBeenNthCalledWith(
                 2,
                 expect.stringContaining('Templates/javascript/package.json'),
-                './js-project/package.json',
+                './js-project/Templates/javascript/package.json',
             );
             expect(copyFileSpy).toHaveBeenNthCalledWith(
                 3,
                 expect.stringContaining('Templates/javascript/README.md'),
-                './js-project/README.md',
+                './js-project/Templates/javascript/README.md',
             );
             consoleSpy.mockRestore();
         });
@@ -166,6 +170,7 @@ describe('InitializeService', () => {
             mockFs.existsSync.mockReturnValue(true);
             mockFs.readdirSync.mockReturnValue([] as any);
             mockFs.copyFileSync.mockImplementation(() => {});
+            mockFs.mkdirSync.mockImplementation(() => '/mock/path'); // Ensure mkdirSync works
 
             // Act
             const result = initializeService.runInitializeAndReturnExitCode(opts);

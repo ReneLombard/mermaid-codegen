@@ -1,46 +1,116 @@
 Feature: Code Generation
-  As a developer
-  I want to generate code from YAML files
-  So that I can automatically create consistent source code
+    Source code generation from structured YAML definitions.
+    Supports multiple programming languages through template-based generation.
+    Handles classes, controllers, and documentation with customizable output formats.
+    Ensures type safety and consistent code structure across generated files.
 
-  Background:
-    Given I have a clean test workspace
-    And I have YAML files containing class definitions
+Background: Code generation testing environment
+    Test subject: Template-based code generation engine and output validation
+    Test tools: Template processor, code generator, file system validation
+    Involved applications: Handlebars template engine, code generator, file I/O
+    Test scope: Template processing, code generation, and output validation
 
-  Scenario: Generate C# classes from YAML
-    Given I have a YAML file with Vehicle class definition
-    And I have C# templates available
-    When I run the generate command
-    Then C# source files should be created
-    And the generated code should contain proper class structure
-    And the generated code should include all properties
+        Given David has prepared a clean test workspace
+            And YAML files containing class definitions are available
+            And the code generation engine is properly configured
 
-  Scenario: Generate C# controllers from YAML
-    Given I have a YAML file with controller endpoints
-    And I have C# templates available
-    When I run the generate command
-    Then C# controller files should be created
-    And the generated controllers should have proper action methods
-    And the generated methods should include correct return types
+    Scenario: Generate C# classes from YAML definitions
+        Create C# source files from YAML class specifications
 
-  Scenario: Generate documentation from YAML
-    Given I have a YAML file with class definitions
-    And I have documentation templates available
-    When I run the generate command with documentation templates
-    Then documentation files should be created
-    And the documentation should include class descriptions
-    And the documentation should include property details
+            Given David has created a file "vehicle.yml" with content:
+            """
+            Name: Vehicle
+            Namespace: Company.VTC
+            Type: Class
+            Attributes:
+              Make:
+                Name: Make
+                Type: String
+                Scope: Public
+              Model:
+                Name: Model
+                Type: String
+                Scope: Public
+              Year:
+                Name: Year
+                Type: Number
+                Scope: Public
+            Methods: {}
+            Dependencies: {}
+            Compositions: {}
+            Aggregations: {}
+            Associations: {}
+            Realizations: {}
+            Implementations: {}
+            Lines: {}
+            """
+                And the file "Templates/C#/class.csharp.hbs" exists
+            When David runs "mermaid-codegen generate -i vehicle.yml -o output/code -t Templates/C#"
+            Then a file "output/code/Vehicle.Generated.cs" should be created
+                And the file should contain "public partial class Vehicle"
+                And the file should contain "public string Make { get; set; }"
+                And the file should contain "public string Model { get; set; }"
+                And the file should contain "public int Year { get; set; }"
 
-  Scenario: Generate code with custom templates
-    Given I have a YAML file with class definitions
-    And I have custom templates in a specific directory
-    When I run the generate command with custom template path
-    Then code should be generated using custom templates
-    And the output should reflect custom template format
+    Scenario: Generate C# controllers from YAML endpoints
+        Create controller classes with proper action methods from YAML
 
-  Scenario: Generate code with missing templates
-    Given I have a YAML file with class definitions
-    And I have specified a non-existent template directory
-    When I run the generate command
-    Then I should see an error about missing templates
-    And no code files should be generated
+            Given David has created a file "vehicle-controller.yml" with content:
+            """
+            Name: VehicleController
+            Namespace: Company.VTC
+            Type: endpoint
+            Methods:
+              GetVehicles:
+                Name: GetVehicles
+                Type: List<Vehicle>
+              GetVehicle:
+                Name: GetVehicle
+                Type: Vehicle
+                Arguments:
+                  - Name: id
+                    Type: int
+            Dependencies: {}
+            Compositions: {}
+            Aggregations: {}
+            Associations: {}
+            Realizations: {}
+            Implementations: {}
+            Inheritance: {}
+            Lines: {}
+            """
+                And the file "Templates/C#/endpoint.csharp.hbs" exists
+            When David runs "mermaid-codegen generate -i vehicle-controller.yml -o output/code -t Templates/C#"
+            Then a file "output/code/VehicleController.Generated.cs" should be created
+                And the file should contain "public partial class VehicleController : ControllerBase"
+                And the file should contain "public partial async Task<ActionResult<List<Vehicle>>> GetVehicles()"
+                And the file should contain "public partial async Task<ActionResult<Vehicle>> GetVehicle(int id)"
+
+    Scenario: Generate documentation from YAML specifications
+        Create comprehensive documentation from class definitions
+
+            Given David has created a file "vehicle.yml" with Vehicle class definition
+                And the file "Templates/Documentation/class.documentation.hbs" exists
+            When David runs "mermaid-codegen generate -i vehicle.yml -o output/docs -t Templates/Documentation"
+            Then a file "output/docs/Company/VTC/Vehicle.Generated.md" should be created
+                And the file should contain "# Vehicle"
+                And the file should contain "## Properties"
+                And the file should contain "- **Make**: string"
+
+    Scenario: Generate code with custom template configurations
+        Support custom template directories and formatting rules
+
+            Given David has created a file "vehicle.yml" with Vehicle class definition
+                And David has created a custom template "custom-templates/my-class.hbs"
+            When David runs "mermaid-codegen generate -i vehicle.yml -o output -t custom-templates"
+            Then a file matching "output/Vehicle*.cs" should be created
+                And the file should follow the custom template format
+
+    Scenario: Handle missing template directories gracefully
+        Ensure proper error handling for invalid template paths
+
+            Given David has created a file "vehicle.yml" with Vehicle class definition
+            When David runs "mermaid-codegen generate -i vehicle.yml -o output -t non-existent-templates"
+            Then David should see "Templates directory does not exist" in the error output
+                And no code files should be created
+                And the command should return a non-zero exit code

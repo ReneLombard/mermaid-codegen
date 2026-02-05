@@ -53,12 +53,32 @@ export class InitializeService {
         }
 
         const outputDir: string = opts.directory!; // Using non-null assertion since we know it exists at this point
+        const templatesOutputDir = path.join(outputDir, 'Templates', opts.language);
+
+        // Create the Templates/Language directory structure
+        try {
+            fs.mkdirSync(templatesOutputDir, { recursive: true });
+        } catch (err) {
+            throw new Error(`Failed to create templates directory: ${templatesOutputDir}`);
+        }
 
         fs.readdirSync(templateDir).forEach((file: string) => {
             const srcPath: string = path.join(templateDir!, file);
-            const destPath: string = path.join(outputDir, file);
+            const destPath: string = path.join(templatesOutputDir, file);
             fs.copyFileSync(srcPath, destPath);
         });
+
+        // Create a basic config.json file
+        const configContent = JSON.stringify(
+            {
+                language: opts.language,
+                templatesDirectory: `Templates/${opts.language}`,
+                outputDirectory: 'output',
+            },
+            null,
+            2,
+        );
+        fs.writeFileSync(path.join(outputDir, 'config.json'), configContent);
 
         console.log(`Copied templates for ${opts.language} to ${outputDir}`);
         return 0;

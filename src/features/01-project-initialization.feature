@@ -1,28 +1,44 @@
 Feature: Project Initialization
-  As a developer
-  I want to initialize a new project
-  So that I can quickly set up code generation for a specific programming language
+    Project setup and configuration functionality for mermaid-codegen.
+    Enables developers to create new projects with language-specific templates.
+    Includes language validation and project structure generation capabilities.
+    Supports multiple programming languages with customizable project layouts.
 
-  Background:
-    Given I have a clean test workspace
+Background: Project initialization testing environment
+    Test subject: Project initialization commands and language setup
+    Test tools: CLI testing framework with file system validation
+    Involved applications: Mermaid-codegen CLI, template system, file system
+    Test scope: Project creation, template selection, and error handling
 
-  Scenario: Initialize a C# project
-    Given I have selected "C#" as the target language
-    And I have specified "test-project" as the project directory
-    When I run the initialize command
-    Then a new project structure should be created
-    And the project should contain C# specific templates
-    And the command should return exit code 0
+        Given Alice has prepared a clean test workspace
+            And the mermaid-codegen CLI is properly installed
+            And template directories are available
 
-  Scenario: List available languages
-    When I run the list languages command
-    Then I should see available programming languages
-    And the output should contain "C#"
-    And the command should return exit code 0
+    Scenario: Initialize a C# project successfully
+        Create a new project structure with C# language templates
 
-  Scenario: Initialize project with invalid language
-    Given I have selected "InvalidLanguage" as the target language
-    And I have specified "test-project" as the project directory
-    When I run the initialize command
-    Then I should see an error message about unsupported language
-    And no project structure should be created
+            Given Alice has set the target language to "C#"
+                And Alice has set the project directory to "test-project"
+            When Alice runs "mermaid-codegen initialize -l C# -d test-project"
+            Then a directory "test-project" should be created
+                And the directory "test-project/Templates/C#" should exist
+                And the file "test-project/config.json" should contain "C#"
+                And the command should return exit code 0
+
+    Scenario: List available programming languages
+        Verify that supported languages are properly displayed
+
+            When Alice runs "mermaid-codegen list-languages"
+            Then Alice should see "C#" in the output
+                And Alice should see "Documentation" in the output
+                And the command should return exit code 0
+
+    Scenario: Handle invalid language selection gracefully
+        Ensure proper error handling for unsupported languages
+
+            Given Alice has set the target language to "invalidlang"
+                And Alice has set the project directory to "test-project"
+            When Alice runs "mermaid-codegen initialize -l invalidlang -d test-project"
+            Then Alice should see "Template for language invalidlang does not exist" in the error output
+                And the directory "test-project" should not exist
+                And the command should return a non-zero exit code
