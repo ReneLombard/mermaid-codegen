@@ -28,7 +28,7 @@ describe('DynamicYamlLoader', () => {
 
             mockFs.statSync.mockReturnValue({ isDirectory: () => false, isFile: () => true } as any);
             mockPath.extname.mockReturnValue('.yml');
-            (mockYAML.load as jest.Mock).mockReturnValue({
+            (mockYAML.parse as jest.Mock).mockReturnValue({
                 Name: 'TestClass',
                 Type: 'class',
                 Attributes: {},
@@ -61,7 +61,7 @@ describe('DynamicYamlLoader', () => {
 
             mockFs.readdirSync.mockReturnValue(['class1.yml', 'class2.yml', 'config.txt'] as any);
             mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
-            (mockYAML.load as jest.Mock)
+            (mockYAML.parse as jest.Mock)
                 .mockReturnValueOnce({
                     Name: 'Class1',
                     Type: 'class',
@@ -97,7 +97,7 @@ describe('DynamicYamlLoader', () => {
 
             mockFs.readdirSync.mockReturnValue(['class1.yml', 'class1_duplicate.yml'] as any);
             mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
-            (mockYAML.load as jest.Mock)
+            (mockYAML.parse as jest.Mock)
                 .mockReturnValueOnce({
                     Name: 'SharedClass',
                     Attributes: { attr1: 'value1' },
@@ -232,8 +232,8 @@ describe('DynamicYamlLoader', () => {
             mockPath.join.mockImplementation((a: string, b: string) => `${a}/${b}`);
 
             // Mock YAML content
-            mockFs.readFileSync.mockReturnValueOnce('className: TestClass1\nproperties: {}');
-            mockYAML.load.mockReturnValueOnce({ className: 'TestClass1', properties: {} } as any);
+            mockFs.readFileSync.mockReturnValueOnce('Name: TestClass1\nproperties: {}');
+            mockYAML.parse.mockReturnValueOnce({ Name: 'TestClass1', properties: {} } as any);
 
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
@@ -291,15 +291,16 @@ describe('DynamicYamlLoader', () => {
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-            // Mock YAML.load to throw an error for this specific test
-            mockYAML.load.mockImplementationOnce(() => {
+            // Mock YAML.parse to throw an error for this specific test
+            mockYAML.parse.mockImplementationOnce(() => {
                 throw new Error('Invalid YAML');
             });
 
             // Act & Assert - The function should handle the error gracefully
-            expect(() => {
-                DynamicYamlLoader.loadAndMergeYamlFiles('/test/invalid');
-            }).toThrow('Invalid YAML');
+            const result = DynamicYamlLoader.loadAndMergeYamlFiles('/test/invalid');
+
+            // Should return empty array when files fail to parse
+            expect(result).toHaveLength(0);
 
             // Restore console spies
             consoleSpy.mockRestore();
@@ -324,7 +325,7 @@ describe('DynamicYamlLoader', () => {
 
             mockFs.readdirSync.mockReturnValue(['file1.yml', 'file2.yaml', 'file3.txt'] as any);
             mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
-            mockYAML.load.mockReturnValue({ Name: 'TestClass', Type: 'class' } as any);
+            mockYAML.parse.mockReturnValue({ Name: 'TestClass', Type: 'class' } as any);
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
             // Act

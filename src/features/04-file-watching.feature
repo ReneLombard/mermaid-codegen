@@ -21,9 +21,9 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
             When Emma modifies the file "vehicle.md" by adding a new property
-            Then a file "output/vehicle.yml" should be updated within 5 seconds
-                And the timestamp of "output/vehicle.yml" should be newer than "vehicle.md"
-                And a file "output/code/Vehicle.Generated.cs" should be updated
+            Then a file "output/global/Vehicle.Generated.yml" should be updated within 5 seconds
+                And the timestamp of "output/global/Vehicle.Generated.yml" should be newer than "vehicle.md"
+                And a file "output/code/global/Vehicle.Generated.cs" should be updated
 
     Scenario: Watch YAML file modifications for code updates
         Monitor YAML files and trigger code regeneration on changes
@@ -32,7 +32,7 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
             When Emma modifies "vehicle.yml" by changing a property type
-            Then a file "output/code/Vehicle.Generated.cs" should be updated within 5 seconds
+            Then a file "output/code/global/Vehicle.Generated.cs" should be updated within 5 seconds
                 And the timestamp of the generated file should be newer than "vehicle.yml"
 
     Scenario: Watch multiple file changes simultaneously
@@ -62,6 +62,30 @@ Background: File watching system testing environment
             When Emma deletes the file "temp-class.md"
             Then the file "output/temp-class.yml" should be removed within 5 seconds
                 And the file "output/code/TempClass.Generated.cs" should be removed
+
+    Scenario: Watch handles invalid file content gracefully
+        Ensure watcher continues running and logs errors when invalid content is detected
+
+            Given Emma has created a file "vehicle.md" with a simple Vehicle class
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And the watch process is running
+            When Emma modifies "vehicle.md" with invalid mermaid syntax
+            Then an error should be logged to the console output
+                And the watch process should continue running
+                And the watch process should not crash
+                And no new output files should be generated for the invalid content
+
+    Scenario: Watch handles invalid YAML content gracefully
+        Ensure watcher continues running and logs errors when invalid YAML is detected
+
+            Given Emma has created a file "vehicle.yml" with Vehicle class definition
+                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And the watch process is running
+            When Emma modifies "vehicle.yml" with invalid YAML syntax
+            Then an error should be logged to the console output
+                And the watch process should continue running
+                And the watch process should not crash
+                And no new code files should be generated for the invalid content
 
         @manual
         Scenario: Stop watching process gracefully

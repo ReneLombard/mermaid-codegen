@@ -134,7 +134,7 @@ Background: Code generation testing environment
         Create comprehensive documentation from class definitions
 
             Given David has created a file "vehicle.yml" with Vehicle class definition
-                And the file "Templates/Documentation/class.documentation.hbs" exists
+                And the file "Templates/Documentation/class.markdown.hbs" exists
             When David runs "mermaid-codegen generate -i vehicle.yml -o output/docs -t Templates/Documentation"
             Then a file "output/docs/Vehicle.Generated.md" should be created
                 And the file should contain:

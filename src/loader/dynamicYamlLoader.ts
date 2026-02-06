@@ -60,16 +60,33 @@ export class DynamicYamlLoader {
 
         files.forEach((file) => {
             //console.log(`Loading YAML file: ${file}`);
-            const yamlContent: YamlContent = YAML.load(file);
-            const className = yamlContent.Name;
-            //console.log(`Processing class: ${className}`);
+            try {
+                const fileContent = fs.readFileSync(file, 'utf8');
+                const yamlContent: YamlContent = YAML.parse(fileContent);
+                if (!yamlContent || typeof yamlContent !== 'object') {
+                    console.error(`Invalid YAML content in file: ${file}`);
+                    return; // Skip this file
+                }
+                const className = yamlContent.Name;
+                if (!className) {
+                    console.error(`YAML file missing 'Name' property: ${file}`);
+                    return; // Skip this file
+                }
+                //console.log(`Processing class: ${className}`);
 
-            if (!mergedClasses[className]) {
-                //console.log(`Creating new class entry for: ${className}`);
-                mergedClasses[className] = new DynamicYamlClass();
-                mergedClasses[className].properties = yamlContent;
-            } else {
-                mergedClasses[className].properties = this.mergeDeep(mergedClasses[className].properties, yamlContent);
+                if (!mergedClasses[className]) {
+                    //console.log(`Creating new class entry for: ${className}`);
+                    mergedClasses[className] = new DynamicYamlClass();
+                    mergedClasses[className].properties = yamlContent;
+                } else {
+                    mergedClasses[className].properties = this.mergeDeep(
+                        mergedClasses[className].properties,
+                        yamlContent,
+                    );
+                }
+            } catch (error: any) {
+                console.error(`Error parsing YAML file ${file}: ${error.message}`);
+                // Skip this file and continue with others
             }
         });
 

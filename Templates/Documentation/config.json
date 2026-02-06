@@ -2,7 +2,10 @@
     "language": "Documentation",
     "extension": "md",
     "namespace": {
-        "prefixToIgnore": "HelloWorld"
+        "prefixToIgnore": "HelloWorld",
+        "namespaceFolderMap": {
+            "Company.VTC": ""
+        }
     },
     "mappings": {
         "Scope": {
