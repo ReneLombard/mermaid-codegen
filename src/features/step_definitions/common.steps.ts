@@ -1,8 +1,18 @@
 import { Given, Then, When } from '@cucumber/cucumber';
 import * as assert from 'assert';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CustomWorld } from '../support/world';
+
+// Hash calculation utility
+function calculateFileHash(filePath: string): string {
+    if (!fs.existsSync(filePath)) {
+        return '';
+    }
+    const content = fs.readFileSync(filePath);
+    return crypto.createHash('sha256').update(content).digest('hex');
+}
 
 // Persona-based setup steps
 Given('{word} has initialized a clean test workspace', async function (this: CustomWorld, persona: string) {
@@ -270,6 +280,26 @@ namespace ${namespace}
     },
 );
 
+When(
+    '{word} creates a new file {string} with a Driver class definition',
+    async function (this: CustomWorld, persona: string, filename: string) {
+        const filePath = path.join(this.workspaceDir, filename);
+        const content = `
+\`\`\`mermaid
+classDiagram
+    class Driver {
+        +String FirstName
+        +String LastName
+        +String LicenseNumber
+        +Number Experience
+    }
+\`\`\`
+`;
+        await fs.promises.writeFile(filePath, content, 'utf-8');
+        this.attach(`${persona} created Driver class definition: ${filename}`);
+    },
+);
+
 Given(
     '{word} has created a YAML file {string} with Vehicle class definition',
     async function (this: CustomWorld, persona: string, filename: string) {
@@ -513,6 +543,8 @@ When('{word} runs {string}', async function (this: CustomWorld, persona: string,
 Then('a file {string} should be created', async function (this: CustomWorld, filename: string) {
     const filePath = path.join(this.workspaceDir, filename);
 
+    //Wait a second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Check if file exists, if not, list what files do exist
     const exists = await this.fileExists(filePath);
 
@@ -815,7 +847,7 @@ When(
         this.attach('Modified YAML content: ' + modifiedContent.substring(0, 200) + '...');
 
         // Give the watcher significant time to process the change
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         this.attach(persona + ' modified file by changing property type: ' + filename);
     },
@@ -976,6 +1008,11 @@ Given(
 Given(
     '{word} has started {string} in the background',
     async function (this: CustomWorld, persona: string, command: string) {
+        // Initialize file hash storage
+        if (!this.testData.fileHashes) {
+            this.testData.fileHashes = {};
+        }
+
         const args = command.split(' ');
         const cmd = args[0] === 'mermaid-codegen' ? 'node' : args[0];
         const srcDir = path.resolve(__dirname, '..', '..', '..');
@@ -1011,6 +1048,41 @@ Given(
 
         // Give the process more time to start and watchers to be fully ready
         await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        // After the watch process has started, capture initial hashes of any existing .cs files
+        const outputCodeDir = path.join(this.workspaceDir, 'output', 'code');
+        try {
+            if (fs.existsSync(outputCodeDir)) {
+                const findCsFiles = async (dir: string): Promise<string[]> => {
+                    const files: string[] = [];
+                    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+
+                    for (const entry of entries) {
+                        const fullPath = path.join(dir, entry.name);
+                        if (entry.isDirectory()) {
+                            files.push(...(await findCsFiles(fullPath)));
+                        } else if (entry.name.endsWith('.cs')) {
+                            files.push(fullPath);
+                        }
+                    }
+                    return files;
+                };
+
+                const csFiles = await findCsFiles(outputCodeDir);
+                for (const csFile of csFiles) {
+                    const stats = await fs.promises.stat(csFile);
+                    this.testData.fileHashes[csFile] = {
+                        initialHash: calculateFileHash(csFile),
+                        initialMTime: stats.mtime,
+                    };
+                    this.attach(
+                        `Captured initial hash for ${path.relative(this.workspaceDir, csFile)}: ${this.testData.fileHashes[csFile].initialHash}`,
+                    );
+                }
+            }
+        } catch (error) {
+            this.attach(`Error capturing initial .cs file hashes: ${error}`);
+        }
 
         this.attach(
             persona +
@@ -1054,7 +1126,35 @@ Given(
 Given(
     '{word} has created files {string} and {string} with class definitions',
     async function (this: CustomWorld, persona: string, file1: string, file2: string) {
-        this.attach(persona + ' created multiple files (placeholder): ' + file1 + ', ' + file2);
+        // Create the first file (vehicle.md)
+        const filePath1 = path.join(this.workspaceDir, file1);
+        await fs.promises.mkdir(path.dirname(filePath1), { recursive: true });
+        const content1 = `\`\`\`mermaid
+classDiagram
+class Vehicle {
+    +String Make
+    +String Model
+    +Number Year
+}
+\`\`\``;
+        await fs.promises.writeFile(filePath1, content1, 'utf-8');
+        this.generatedFiles.push(filePath1);
+
+        // Create the second file (driver.md)
+        const filePath2 = path.join(this.workspaceDir, file2);
+        await fs.promises.mkdir(path.dirname(filePath2), { recursive: true });
+        const content2 = `\`\`\`mermaid
+classDiagram
+class Driver {
+    +String Name
+    +Number Age
+    +String LicenseNumber
+}
+\`\`\``;
+        await fs.promises.writeFile(filePath2, content2, 'utf-8');
+        this.generatedFiles.push(filePath2);
+
+        this.attach(persona + ' created multiple class definition files: ' + file1 + ', ' + file2);
     },
 );
 
@@ -1069,10 +1169,24 @@ When(
 
         // Read existing content and modify it
         const existingContent = await fs.promises.readFile(filePath, 'utf-8');
-        const modifiedContent = existingContent + '\n        +String Color';
+        this.attach(`Original content: ${existingContent.substring(0, 200)}...`);
+
+        // Properly insert a new property within the class definition
+        // Look for the last property line and insert after it
+        const modifiedContent = existingContent.replace(/(\+Number Year\s*\n)/, '$1    +String Color\n');
+
+        this.attach(`Modified content: ${modifiedContent.substring(0, 200)}...`);
 
         // Force file system sync to ensure change is detected
         await fs.promises.writeFile(filePath, modifiedContent, 'utf-8');
+
+        // Verify the file was actually modified
+        const verifyContent = await fs.promises.readFile(filePath, 'utf-8');
+        this.attach(`Verified content after write: ${verifyContent.substring(0, 200)}...`);
+
+        // Check the modification time
+        const stats = await fs.promises.stat(filePath);
+        this.attach(`File mtime after modification: ${stats.mtime.toISOString()}`);
 
         // Multiple approaches to ensure file change is detected
         const fd = await fs.promises.open(filePath, 'r+');
@@ -1080,8 +1194,15 @@ When(
         await fd.close();
 
         // Additional file operations to trigger change events
-        const stats = await fs.promises.stat(filePath);
         await fs.promises.utimes(filePath, stats.atime, new Date());
+
+        const newStats = await fs.promises.stat(filePath);
+        this.attach(`File mtime after utimes: ${newStats.mtime.toISOString()}`);
+
+        // Check if the watch process is still running
+        if (this.watchProcess) {
+            this.attach(`Watch process alive: ${!this.watchProcess.killed} (PID: ${this.watchProcess.pid})`);
+        }
 
         // Give the watcher significant time to process the change
         await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -1093,19 +1214,66 @@ When(
 When(
     '{word} modifies both {string} and {string} simultaneously',
     async function (this: CustomWorld, persona: string, file1: string, file2: string) {
-        this.attach(persona + ' modified multiple files (placeholder): ' + file1 + ', ' + file2);
+        // Modify the first file (vehicle.md)
+        const filePath1 = path.join(this.workspaceDir, file1);
+        const existingContent1 = await fs.promises.readFile(filePath1, 'utf-8');
+        const modifiedContent1 = existingContent1.replace(/(\+Number Year\s*\n)/, '$1    +String Color\n');
+        await fs.promises.writeFile(filePath1, modifiedContent1, 'utf-8');
+
+        // Modify the second file (driver.md)
+        const filePath2 = path.join(this.workspaceDir, file2);
+        const existingContent2 = await fs.promises.readFile(filePath2, 'utf-8');
+        const modifiedContent2 = existingContent2.replace(/(\+String LicenseNumber\s*\n)/, '$1    +String Email\n');
+        await fs.promises.writeFile(filePath2, modifiedContent2, 'utf-8');
+
+        // Force file system sync for both files
+        const fd1 = await fs.promises.open(filePath1, 'r+');
+        await fd1.sync();
+        await fd1.close();
+
+        const fd2 = await fs.promises.open(filePath2, 'r+');
+        await fd2.sync();
+        await fd2.close();
+
+        // Update timestamps to ensure change detection
+        const stats1 = await fs.promises.stat(filePath1);
+        await fs.promises.utimes(filePath1, stats1.atime, new Date());
+
+        const stats2 = await fs.promises.stat(filePath2);
+        await fs.promises.utimes(filePath2, stats2.atime, new Date());
+
+        this.attach(persona + ' modified both files simultaneously: ' + file1 + ', ' + file2);
     },
 );
 
 When(
     '{word} creates a new file {string} with a Product class definition',
     async function (this: CustomWorld, persona: string, filename: string) {
-        this.attach(persona + ' created new file (placeholder): ' + filename);
+        const filePath = path.join(this.workspaceDir, filename);
+        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+        const content = `\`\`\`mermaid
+classDiagram
+class Product {
+    +String Name
+    +Number Price
+    +String Category
+}
+\`\`\``;
+        await fs.promises.writeFile(filePath, content, 'utf-8');
+        this.generatedFiles.push(filePath);
+        this.attach(persona + ' created new Product class definition file: ' + filename);
     },
 );
 
 When('{word} deletes the file {string}', async function (this: CustomWorld, persona: string, filename: string) {
-    this.attach(persona + ' deleted file (placeholder): ' + filename);
+    const filePath = path.join(this.workspaceDir, filename);
+
+    if (fs.existsSync(filePath)) {
+        await fs.promises.unlink(filePath);
+        this.attach(persona + ' deleted file: ' + filename);
+    } else {
+        this.attach(persona + ' attempted to delete non-existent file: ' + filename);
+    }
 });
 
 When('{word} sends SIGTERM signal to the watch process', async function (this: CustomWorld, persona: string) {
@@ -1120,7 +1288,44 @@ Then(
 );
 
 Then('a file {string} should be updated', async function (this: CustomWorld, filename: string) {
-    this.attach('File update verified (placeholder): ' + filename);
+    const filePath = path.join(this.workspaceDir, filename);
+    const isCodeFile = filename.endsWith('.cs');
+
+    // Check if file exists
+    if (!(await this.fileExists(filePath))) {
+        throw new Error(`File does not exist: ${filename}`);
+    }
+
+    // For .cs files, we should verify the content has actually changed
+    if (isCodeFile) {
+        const currentHash = calculateFileHash(filePath);
+
+        // Get the stored initial hash (if any) from the world context
+        if (!this.testData.fileHashes) {
+            this.testData.fileHashes = {};
+        }
+
+        const storedData = this.testData.fileHashes[filePath];
+        if (storedData && storedData.initialHash) {
+            if (currentHash === storedData.initialHash) {
+                throw new Error(`File ${filename} exists but content has not changed (hash unchanged)`);
+            }
+            this.attach(
+                `File content verified as changed: ${filename} (hash: ${storedData.initialHash} -> ${currentHash})`,
+            );
+        } else {
+            // If no stored hash, just verify the file exists and has content
+            const stats = await fs.promises.stat(filePath);
+            if (stats.size === 0) {
+                throw new Error(`File ${filename} exists but is empty`);
+            }
+            this.attach(`File ${filename} exists with content (${stats.size} bytes)`);
+        }
+    } else {
+        // For non-.cs files, just verify existence
+        const stats = await fs.promises.stat(filePath);
+        this.attach(`File ${filename} exists (${stats.size} bytes, mtime: ${stats.mtime.toISOString()})`);
+    }
 });
 
 Then('both {string} and {string} should be updated', async function (this: CustomWorld, file1: string, file2: string) {

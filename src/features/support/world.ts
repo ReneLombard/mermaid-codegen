@@ -10,13 +10,29 @@ export interface CommandResult {
     stderr: string;
 }
 
+export interface FileHashData {
+    initialHash: string;
+    initialMTime: Date | null;
+}
+
+export interface FileHashStore {
+    [filePath: string]: FileHashData;
+}
+
 export class CustomWorld extends World {
     public workspaceDir!: string;
     public generatedFiles: string[] = [];
     public currentFile?: string; // Track the current file for content verification
     public lastCommandResult?: CommandResult;
     public watchProcess?: ChildProcess;
-    public testData: any = {}; // For storing test-specific data
+    public testData: {
+        fileHashes?: FileHashStore;
+        recordedHashes?: { [filename: string]: string };
+        watchStdout?: string;
+        watchStderr?: string;
+        watchPid?: number;
+        [key: string]: any;
+    } = {}; // For storing test-specific data
 
     constructor(options: any) {
         super(options);

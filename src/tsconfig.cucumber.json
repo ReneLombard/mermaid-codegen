@@ -19,5 +19,5 @@
         "types": ["node", "@cucumber/cucumber"]
     },
     "include": ["**/*.ts", "features/**/*.ts"],
-    "exclude": ["node_modules", "dist", "coverage", "coverage-cucumber", "**/*.test.ts"]
+    "exclude": ["node_modules", "dist", "coverage", "coverage-cucumber", "**/*.test.ts", "__tests__/**/*.ts"]
 }
