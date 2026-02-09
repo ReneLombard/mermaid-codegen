@@ -11,6 +11,7 @@
     },
     "scripts": {
         "build": "npm run process-jison && tsc",
+        "build:cucumber": "npm run process-jison && tsc -p tsconfig.cucumber.json",
         "process-jison": "node -r ts-node/register processJison.ts",
         "start": "npm run build && node dist/index.js",
         "dev": "ts-node index.ts",
@@ -18,6 +19,8 @@
         "test:watch": "npm run process-jison && jest --watch",
         "test:coverage": "npm run process-jison && jest --coverage",
         "test:ci": "npm run process-jison && jest --ci --coverage --watchAll=false",
+        "test:cucumber": "npm run build:cucumber && cucumber-js",
+        "test:cucumber:watch": "npm run build:cucumber && cucumber-js --watch",
         "test:integration": "npm run test:cucumber",
         "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output/yml -n Company.VTC",
         "generate:code": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/code --templates \"../Templates/C#\"",
