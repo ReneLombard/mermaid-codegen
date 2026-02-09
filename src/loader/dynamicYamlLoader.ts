@@ -49,7 +49,7 @@ export class DynamicYamlLoader {
             }
         } else if (stats.isDirectory()) {
             // Directory
-            files = getAllFiles(inputPath);
+            files = getAllFiles(inputPath).filter((file) => file.endsWith('.yml') || file.endsWith('.yaml'));
         } else {
             throw new Error(`Invalid input path: ${inputPath}`);
         }

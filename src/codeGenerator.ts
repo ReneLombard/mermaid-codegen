@@ -109,10 +109,6 @@ export class CodeGenerator {
                     const jsonData: any = JSON.parse(jsonString);
                     const compiledTemplate: HandlebarsTemplateDelegate = Handlebars.compile(file.content.toString());
 
-                    console.log(`DEBUG: Template type: ${file.type}, Template filename: ${file.fileName}`);
-                    console.log(`DEBUG: Data keys: ${Object.keys(jsonData)}`);
-                    console.log(`DEBUG: Template content preview: ${file.content.toString().substring(0, 100)}...`);
-
                     const result: string = compiledTemplate(jsonData);
 
                     console.log(`DEBUG: Result preview: ${result.substring(0, 100)}...`);
@@ -128,11 +124,7 @@ export class CodeGenerator {
                         : `${name}.Generated.${templatesPerLanguage.config?.extension}`;
 
                     const fullPath: string = path.join(outputDirectory, fileName);
-                    console.log(`DEBUG: Writing to: ${fullPath}`);
-                    console.log(`DEBUG: Content length: ${result.length}`);
                     fs.writeFileSync(fullPath, result);
-                    console.log(`DEBUG: File written successfully`);
-                    //console.log(`Writing file to: ${path.join(outputDirectory, fileName)}`);
                 });
             });
         });
