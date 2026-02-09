@@ -1027,25 +1027,22 @@ Given(
         });
 
         // Capture stdout and stderr
-        let stdout = '';
-        let stderr = '';
+        this.testData.watchStdout = '';
+        this.testData.watchStderr = '';
 
         if (this.watchProcess && this.watchProcess.stdout) {
             this.watchProcess.stdout.on('data', (data: any) => {
-                stdout += data.toString();
+                const chunk = data.toString();
+                this.testData.watchStdout += chunk;
             });
         }
 
         if (this.watchProcess && this.watchProcess.stderr) {
             this.watchProcess.stderr.on('data', (data: any) => {
-                stderr += data.toString();
+                const chunk = data.toString();
+                this.testData.watchStderr += chunk;
             });
         }
-
-        // Store output for later inspection
-        this.testData.watchStdout = stdout;
-        this.testData.watchStderr = stderr;
-
         // Give the process more time to start and watchers to be fully ready
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
