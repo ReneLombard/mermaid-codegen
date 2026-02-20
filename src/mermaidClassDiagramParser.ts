@@ -124,23 +124,6 @@ export class MermaidClassDiagramParser {
                 continue;
             }
 
-            // Check for relation lines
-            const relationPattern =
-                /(\w+)\s*((?:[\|\}o][\|\-]*[\|\{o><])|(?:--[\>o])|(?:\.\.[\>o])|(?:==[\>o])|(?:<--)|(?:<\.\.)|(?:<==))\s*(\w+)(?:\s*:\s*(\w+))?/;
-            const relationMatch = relationPattern.exec(line);
-
-            if (relationMatch) {
-                const [_, sourceClass, _relationSymbol, targetClass, relationName] = relationMatch;
-
-                if (lastComment) {
-                    const relationKey = `${sourceClass}-${targetClass}-${relationName}`;
-                    this.relationComments[relationKey] = lastComment;
-                }
-
-                lastComment = '';
-                continue;
-            }
-
             // Check for attribute lines (inside a class)
             if (currentClass) {
                 const attributePattern = /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)/;
@@ -157,6 +140,23 @@ export class MermaidClassDiagramParser {
                     lastComment = '';
                     continue;
                 }
+            }
+
+            // Check for relation lines
+            const relationPattern =
+                /(\w+)\s*((?:[\|\}o][\|\-]*[\|\{o><])|(?:--[\>o])|(?:\.\.[\>o])|(?:==[\>o])|(?:<--)|(?:<\.\.)|(?:<==))\s*(\w+)(?:\s*:\s*(\w+))?/;
+            const relationMatch = relationPattern.exec(line);
+
+            if (relationMatch) {
+                const [_, sourceClass, _relationSymbol, targetClass, relationName] = relationMatch;
+
+                if (lastComment) {
+                    const relationKey = `${sourceClass}-${targetClass}-${relationName}`;
+                    this.relationComments[relationKey] = lastComment;
+                }
+
+                lastComment = '';
+                continue;
             }
 
             // Reset comment if we encounter other non-empty, non-comment lines
