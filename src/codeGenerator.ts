@@ -68,6 +68,20 @@ export class CodeGenerator {
                 return Array.prototype.slice.call(arguments, 0, -1).some(Boolean);
             },
         });
+        Handlebars.registerHelper('xmlSummary', function (comment: string, indent: string = '') {
+            if (!comment) return '';
+
+            const lines = comment.split('\n');
+            const prefix = `${indent}/// `;
+
+            const summaryLines = [
+                `${prefix}<summary>`,
+                ...lines.map((line) => `${prefix}${line}`),
+                `${prefix}</summary>`,
+            ];
+
+            return new Handlebars.SafeString(summaryLines.join('\n'));
+        });
 
         mergedYmlList.forEach((mergedClass: DynamicYamlClass) => {
             //console.log(`Processing class: ${mergedClass.properties.Name}`);

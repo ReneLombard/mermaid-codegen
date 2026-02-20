@@ -41,6 +41,7 @@ namespace Company.VTC.Models {
         %% specific model
         +String Model
         %% production year
+        %% note: not the same as registration year
         +Number Year
         +String Status
     }

@@ -105,7 +105,13 @@ export class MermaidClassDiagramParser {
 
             // Capture comment lines
             if (line.startsWith('%%')) {
-                lastComment = line.substring(2).trim();
+                const commentText = line.substring(2).trim();
+                if (lastComment) {
+                    lastComment = lastComment + '\n' + commentText;
+                } else {
+                    lastComment = commentText;
+                }
+
                 // Remove comment line from content since the parser can't handle comments for classes, while the viewer can
                 content = content.replace(line, '');
                 continue;

@@ -6,20 +6,12 @@ using {{this}};
 
 {{#if this.Namespace}}namespace {{this.Namespace}};{{/if}}
 
-{{#if this.Comment}}
-/// <summary>
-/// {{this.Comment}}
-/// </summary>
-{{/if}}
+{{{xmlSummary this.Comment ""}}}
 public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
 {
 
 {{#each Attributes}}
-    {{#if this.Comment}}
-    /// <summary>
-    /// {{this.Comment}}
-    /// </summary>
-    {{/if}}
+{{{xmlSummary this.Comment "    "}}}
     {{#if this.Annotations.Required}}
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
     {{/if}}
