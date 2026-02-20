@@ -103,7 +103,7 @@ export class MermaidTransformer {
             fs.mkdirSync(namespaceDir, { recursive: true });
             for (const [className, classData] of Object.entries(classes)) {
                 this.removeEmptyKeys(classData);
-                const yamlOutput = yaml.dump(classData, { noRefs: true });
+                const yamlOutput = yaml.dump(classData, { noRefs: true, lineWidth: -1 });
                 fs.writeFileSync(path.join(namespaceDir, `${className}.Generated.yml`), yamlOutput);
             }
         }
