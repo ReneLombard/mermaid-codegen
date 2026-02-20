@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as Handlebars from 'handlebars';
+import * as os from 'os';
 import * as path from 'path';
 import { DynamicYamlClass } from './dynamicYamlClass';
 import { DynamicYamlLoader } from './loader/dynamicYamlLoader';
@@ -71,7 +72,7 @@ export class CodeGenerator {
         Handlebars.registerHelper('xmlSummary', function (comment: string, indent: string = '') {
             if (!comment) return '';
 
-            const lines = comment.split('\n');
+            const lines = comment.split(/\r?\n/);
             const prefix = `${indent}/// `;
 
             const summaryLines = [
@@ -80,7 +81,7 @@ export class CodeGenerator {
                 `${prefix}</summary>`,
             ];
 
-            return new Handlebars.SafeString(summaryLines.join('\n'));
+            return new Handlebars.SafeString(summaryLines.join(os.EOL));
         });
 
         mergedYmlList.forEach((mergedClass: DynamicYamlClass) => {
