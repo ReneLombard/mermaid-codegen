@@ -96,8 +96,8 @@ export class MermaidClassDiagramParser {
             }
 
             // Track current class - look 1 line ahead to handle comments for a class that's following on the next line
-            const currentLineClassMatch = line.match(/class\s+(\w+)/);
-            const nextLineClassMatch = nextLine.match(/class\s+(\w+)/);
+            const currentLineClassMatch = line.match(/^class\s+(\w+)/);
+            const nextLineClassMatch = nextLine.match(/^class\s+(\w+)/);
             const classMatch = currentLineClassMatch || nextLineClassMatch;
             if (classMatch) {
                 currentClass = classMatch[1];
