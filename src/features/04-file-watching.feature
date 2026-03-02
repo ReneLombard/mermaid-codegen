@@ -67,7 +67,19 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-            When Emma modifies "vehicle.md" with invalid mermaid syntax
+            When Emma modifies "vehicle.md" with invalid mermaid syntax:
+                """
+                classDiagram
+                    class Vehicle {
+                        +String make
+                        +String model
+                        +Number year
+                        // This is invalid mermaid syntax - missing closing brace and random text
+                        invalid syntax here $$$ @@@ broken content
+                        class NotClosed {
+                            +String property
+                        // Missing closing brace intentionally
+                """
               #  And Emma waits for the file watcher to detect changes
             Then an error should be logged to the console output
                 And the watch process should continue running
@@ -82,7 +94,28 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-            When Emma modifies "vehicle.yml" with invalid YAML syntax
+            When Emma modifies "vehicle.yml" with invalid YAML syntax:
+                """
+                Name: Vehicle
+                Namespace: Company.VTC
+                Type: Class
+                Attributes:
+                  Make:
+                    Name: Make
+                    Type: String
+                    Scope: Public
+                  Model:
+                    Name: Model
+                    Type: String
+                    - invalid yaml list syntax in wrong place
+                    [invalid bracket syntax]: broken
+                    Scope: Public
+                    }: invalid closing brace in yaml
+                Methods: {broken yaml structure
+                Dependencies: invalid yaml content @@@ $$$ broken
+                - random list item without proper indentation
+                  }: more broken syntax
+                """
               #  And Emma waits for the file watcher to detect changes
             Then an error should be logged to the console output
                 And the watch process should continue running

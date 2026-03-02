@@ -1376,21 +1376,10 @@ Then('the workspace should remain clean', function (this: CustomWorld) {
 
 // Error handling for invalid content scenarios
 When(
-    '{word} modifies {string} with invalid mermaid syntax',
-    async function (this: CustomWorld, persona: string, filename: string) {
+    '{word} modifies {string} with invalid mermaid syntax:',
+    async function (this: CustomWorld, persona: string, filename: string, docString: string) {
         const filePath = path.join(this.workspaceDir, filename);
-        const invalidMermaidContent = `classDiagram
-    class Vehicle {
-        +String make
-        +String model
-        +Number year
-        // This is invalid mermaid syntax - missing closing brace and random text
-        invalid syntax here $$$ @@@ broken content
-        class NotClosed {
-            +String property
-        // Missing closing brace intentionally`;
-
-        await fs.promises.writeFile(filePath, invalidMermaidContent, 'utf-8');
+        await fs.promises.writeFile(filePath, docString, 'utf-8');
         this.attach(persona + ' modified file with invalid mermaid syntax: ' + filename);
 
         // Give the watcher a moment to process the invalid file
@@ -1399,30 +1388,10 @@ When(
 );
 
 When(
-    '{word} modifies {string} with invalid YAML syntax',
-    async function (this: CustomWorld, persona: string, filename: string) {
+    '{word} modifies {string} with invalid YAML syntax:',
+    async function (this: CustomWorld, persona: string, filename: string, docString: string) {
         const filePath = path.join(this.workspaceDir, filename);
-        const invalidYamlContent = `Name: Vehicle
-Namespace: Company.VTC
-Type: Class
-Attributes:
-  Make:
-    Name: Make
-    Type: String
-    Scope: Public
-  Model:
-    Name: Model
-    Type: String
-    - invalid yaml list syntax in wrong place
-    [invalid bracket syntax]: broken
-    Scope: Public
-    }: invalid closing brace in yaml
-Methods: {broken yaml structure
-Dependencies: invalid yaml content @@@ $$$ broken
-- random list item without proper indentation
-  }: more broken syntax`;
-
-        await fs.promises.writeFile(filePath, invalidYamlContent, 'utf-8');
+        await fs.promises.writeFile(filePath, docString, 'utf-8');
         this.attach(persona + ' modified file with invalid YAML syntax: ' + filename);
 
         // Give the watcher a moment to process the invalid file
