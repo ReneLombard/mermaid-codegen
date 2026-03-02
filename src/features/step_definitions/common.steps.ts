@@ -1245,21 +1245,13 @@ When(
 );
 
 When(
-    '{word} creates a new file {string} with a Product class definition',
-    async function (this: CustomWorld, persona: string, filename: string) {
+    '{word} creates a new file {string} with a {word} class definition:',
+    async function (this: CustomWorld, persona: string, filename: string, className: string, docString: string) {
         const filePath = path.join(this.workspaceDir, filename);
         await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const content = `\`\`\`mermaid
-classDiagram
-class Product {
-    +String Name
-    +Number Price
-    +String Category
-}
-\`\`\``;
-        await fs.promises.writeFile(filePath, content, 'utf-8');
+        await fs.promises.writeFile(filePath, docString, 'utf-8');
         this.generatedFiles.push(filePath);
-        this.attach(persona + ' created new Product class definition file: ' + filename);
+        this.attach(persona + ' created new ' + className + ' class definition file: ' + filename);
     },
 );
 

@@ -42,7 +42,17 @@ Background: File watching system testing environment
         Detect and process newly created files in watched directories
 
             Given Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
-            When Emma creates a new file "product.md" with a Product class definition
+            When Emma creates a new file "product.md" with a Product class definition:
+                """
+                ```mermaid
+                classDiagram
+                class Product {
+                    +String Name
+                    +Number Price
+                    +String Category
+                }
+                ```
+                """
                # And Emma waits for the file watcher to detect changes
                 And Emma waits for initial file processing to complete
             Then a file "output/global/Product.Generated.yml" should be created
