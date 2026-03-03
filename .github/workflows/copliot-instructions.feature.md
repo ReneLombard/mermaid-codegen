@@ -143,10 +143,91 @@ Given the following class diagram:
     ```
 ````
 
+**Preferred approach - inline YAML/template content and expected output:**
+
+```gherkin
+Scenario: Generate code with custom template configurations
+    Support custom template directories and formatting rules
+
+        Given David has created a file "vehicle.yml" with content:
+        """
+        Name: Vehicle
+        Namespace: Company.VTC
+        Type: Class
+        Attributes:
+          Make:
+            Name: Make
+            Type: String
+            Scope: Public
+          Model:
+            Name: Model
+            Type: String
+            Scope: Public
+          Year:
+            Name: Year
+            Type: Number
+            Scope: Public
+        Methods: {}
+        Dependencies: {}
+        Compositions: {}
+        Aggregations: {}
+        Associations: {}
+        Realizations: {}
+        Implementations: {}
+        Lines: {}
+        """
+
+            And David has created a custom template "custom-templates/class.csharp.hbs" with content:
+            """
+            // Custom template with special formatting
+            namespace {{Namespace}}
+            {
+                /// <summary>
+                /// Auto-generated class: {{Name}}
+                /// </summary>
+                public partial class {{Name}}
+                {
+                    {{#each Attributes}}
+                    /// <summary>{{this.Name}}</summary>
+                    public {{this.Type}} {{this.Name}} { get; set; }
+                    {{/each}}
+                }
+            }
+            """
+        When David runs "mermaid-codegen generate -i vehicle.yml -o output -t custom-templates"
+        Then a file matching "output/Vehicle*.cs" should be created
+            And the file should contain:
+            """
+            // Custom template with special formatting
+            namespace Company.VTC
+            {
+                /// <summary>
+                /// Auto-generated class: Vehicle
+                /// </summary>
+                public partial class Vehicle
+                {
+                    /// <summary>Make</summary>
+                    public string Make { get; set; }
+                    /// <summary>Model</summary>
+                    public string Model { get; set; }
+                    /// <summary>Year</summary>
+                    public int Year { get; set; }
+                }
+            }
+            """
+            And the file should follow the custom template format
+```
+
 **Avoid file references:**
 
 ```gherkin
 Given the class diagram from file "vehicle-model.mmd"
+```
+
+```gherkin
+Given the YAML input from file "vehicle.yml"
+And the custom template from file "custom-templates/class.csharp.hbs"
+Then the generated file should match "expected/Vehicle.cs"
 ```
 
 This approach ensures that:

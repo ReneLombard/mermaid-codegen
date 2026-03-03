@@ -55,8 +55,56 @@ Background: Basic smoke test environment setup
     Scenario: Basic code generation capability
         Verify that YAML definitions can generate source code files
 
-            Given Bob has created a YAML file "vehicle.yml" with Vehicle class definition
-                And the C# templates exist in "Templates/C#/" directory
+                        Given Bob has created a file "vehicle.yml" with content:
+                        """
+                        Name: Vehicle
+                        Namespace: global
+                        Type: Class
+                        Attributes:
+                            Make:
+                                Name: Make
+                                Type: String
+                                Scope: Public
+                            Model:
+                                Name: Model
+                                Type: String
+                                Scope: Public
+                            Year:
+                                Name: Year
+                                Type: Number
+                                Scope: Public
+                        Methods: {}
+                        Dependencies: {}
+                        Compositions: {}
+                        Aggregations: {}
+                        Associations: {}
+                        Realizations: {}
+                        Implementations: {}
+                        Lines: {}
+                        """
+                And Bob has created a file "Templates/C#/config.json" with content:
+                """
+                {
+                    "language": "CSharp",
+                    "extension": "cs",
+                    "mappings": {
+                        "Scope": { "Public": "public", "Private": "private", "Protected": "protected" },
+                        "Type": { "Number": "int", "String": "string", "Boolean": "bool" }
+                    }
+                }
+                """
+                And Bob has created a file "Templates/C#/class.csharp.hbs" with content:
+                """
+                namespace {{#if Namespace}}{{Namespace}}{{else}}DefaultNamespace{{/if}}
+                {
+                    public partial class {{Name}}
+                    {
+                {{#each Attributes}}
+                        public {{#if this.Type}}{{this.Type}}{{else}}string{{/if}} {{this.Name}} { get; set; }
+                {{/each}}
+                    }
+                }
+                """
             When Bob runs "mermaid-codegen generate -i vehicle.yml -o output/code -t Templates/C#"
             Then a C# file "Vehicle.Generated.cs" should be created in "output/code/global/"
                 And the CLI should return exit code 0

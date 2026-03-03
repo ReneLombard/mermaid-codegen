@@ -55,7 +55,16 @@ Background: End-to-end workflow testing environment
     Scenario: Workflow error handling and graceful failure
         Ensure robust error handling throughout the complete pipeline
 
-            Given Frank has created a file "broken.md" with invalid mermaid syntax
+            Given Frank has created a file "broken.md" with content:
+            """
+            ```mermaid
+            classDiagram
+            class Vehicle {
+                +String Make
+                +String Model
+                // intentionally missing closing brace
+            ```
+            """
             When Frank runs "mermaid-codegen transform -i broken.md -o output/yml"
             Then Frank should see "Mermaid parsing failed" in the error output
                 And the command should return a non-zero exit code
@@ -66,9 +75,69 @@ Background: End-to-end workflow testing environment
     Scenario: Workflow with custom configuration and templates
         Support customized workflow execution with user-defined settings
 
-            Given Frank has created a file "custom.md" with Vehicle class definition
-                And Frank has created a config file "custom-config.json" with template settings
-                And Frank has custom templates in "custom-templates/" directory
+                        Given Frank has created a file "custom.md" with content:
+                        """
+                        ```mermaid
+                        classDiagram
+                        namespace Company.VTC.Models {
+                                class Vehicle {
+                                        +String Make
+                                        +String Model
+                                        +Number Year
+                                }
+                        }
+                        ```
+                        """
+                                And Frank has created a file "custom-config.json" with content:
+                                """
+                                {
+                                    "language": "CSharp",
+                                    "extension": "cs",
+                                    "mappings": {
+                                        "Scope": {
+                                            "Public": "public",
+                                            "Private": "private",
+                                            "Protected": "protected"
+                                        },
+                                        "Type": {
+                                            "Number": "int",
+                                            "String": "string",
+                                            "REGEX:~(.*)~": "<$1>"
+                                        }
+                                    }
+                                }
+                                """
+                                And Frank has created a file "custom-templates/class.csharp.hbs" with content:
+                                """
+                                namespace {{Namespace}}
+                                {
+                                        public partial class {{Name}}
+                                        {
+                                {{#each Attributes}}
+                                                public {{Type}} {{Name}} { get; set; }
+                                {{/each}}
+                                        }
+                                }
+                                """
+                                And Frank has created a file "custom-templates/config.json" with content:
+                                """
+                                {
+                                    "language": "CSharp",
+                                    "extension": "cs",
+                                    "mappings": {
+                                        "Scope": {
+                                            "Public": "public",
+                                            "Private": "private",
+                                            "Protected": "protected"
+                                        },
+                                        "Type": {
+                                            "Number": "int",
+                                            "String": "string",
+                                            "REGEX:~(.*)~": "<$1>"
+                                        }
+                                    }
+                                }
+                                """
             When Frank runs "mermaid-codegen transform -i custom.md -o output/yml"
             And Frank runs "mermaid-codegen generate -i output/yml -o output/code -t custom-templates"
             Then the generated code should use the custom templates

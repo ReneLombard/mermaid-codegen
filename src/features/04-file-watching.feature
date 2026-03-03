@@ -17,7 +17,17 @@ Background: File watching system testing environment
     Scenario: Watch Mermaid file modifications automatically
         Monitor Mermaid files and trigger YAML regeneration on changes
 
-            Given Emma has created a file "vehicle.md" with a simple Vehicle class
+            Given Emma has created a file "vehicle.md" with:
+                """
+                ```mermaid
+                classDiagram
+                class Vehicle {
+                    +String Make
+                    +String Model
+                    +Number Year
+                }
+                ```
+                """
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
@@ -29,7 +39,33 @@ Background: File watching system testing environment
     Scenario: Watch YAML file modifications for code updates
         Monitor YAML files and trigger code regeneration on changes
 
-            Given Emma has created a file "vehicle.yml" with Vehicle class definition
+                        Given Emma has created a file "vehicle.yml" with content:
+                                """
+                                Name: Vehicle
+                                Namespace: global
+                                Type: Class
+                                Attributes:
+                                    Make:
+                                        Name: Make
+                                        Type: String
+                                        Scope: Public
+                                    Model:
+                                        Name: Model
+                                        Type: String
+                                        Scope: Public
+                                    Year:
+                                        Name: Year
+                                        Type: Number
+                                        Scope: Public
+                                Methods: {}
+                                Dependencies: {}
+                                Compositions: {}
+                                Aggregations: {}
+                                Associations: {}
+                                Realizations: {}
+                                Implementations: {}
+                                Lines: {}
+                                """
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
@@ -61,7 +97,16 @@ Background: File watching system testing environment
     Scenario: Watch handles file deletion events appropriately
         Clean up generated files when source files are removed
 
-            Given Emma has created a file "temp-class.md" with a class definition
+            Given Emma has created a file "temp-class.md" with content:
+                """
+                ```mermaid
+                classDiagram
+                class TempClass {
+                    +String Name
+                    +Number Version
+                }
+                ```
+                """
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the corresponding output files exist
                 And Emma records the hash of "output/code/global/TempClass.Generated.cs"
@@ -73,7 +118,17 @@ Background: File watching system testing environment
     Scenario: Watch handles invalid file content gracefully
         Ensure watcher continues running and logs errors when invalid content is detected
 
-            Given Emma has created a file "vehicle.md" with a simple Vehicle class
+            Given Emma has created a file "vehicle.md" with:
+                """
+                ```mermaid
+                classDiagram
+                class Vehicle {
+                    +String Make
+                    +String Model
+                    +Number Year
+                }
+                ```
+                """
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
@@ -83,7 +138,7 @@ Background: File watching system testing environment
                     class Vehicle {
                         +String make
                         +String model
-                        +Number year
+                        +String year
                         // This is invalid mermaid syntax - missing closing brace and random text
                         invalid syntax here $$$ @@@ broken content
                         class NotClosed {
@@ -99,8 +154,33 @@ Background: File watching system testing environment
 
     Scenario: Watch handles invalid YAML content gracefully
         Ensure watcher continues running and logs errors when invalid YAML is detected
-
-            Given Emma has created a file "vehicle.yml" with Vehicle class definition
+                        Given Emma has created a file "vehicle.yml" with content:
+                                """
+                                Name: Vehicle
+                                Namespace: global
+                                Type: Class
+                                Attributes:
+                                    Make:
+                                        Name: Make
+                                        Type: String
+                                        Scope: Public
+                                    Model:
+                                        Name: Model
+                                        Type: String
+                                        Scope: Public
+                                    Year:
+                                        Name: Year
+                                        Type: Number
+                                        Scope: Public
+                                Methods: {}
+                                Dependencies: {}
+                                Compositions: {}
+                                Aggregations: {}
+                                Associations: {}
+                                Realizations: {}
+                                Implementations: {}
+                                Lines: {}
+                                """
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
