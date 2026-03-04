@@ -521,6 +521,29 @@ program
             .on('unlinkDir', (dirPath: string) => {
                 console.log(`Directory removed: ${dirPath}`);
             });
+
+        // Handle graceful shutdown on SIGTERM and SIGINT
+        // Ensure clean exit with code 0 when signaled
+        const handleTermination = (signal: string) => {
+            return () => {
+                console.log(`Received ${signal}, exiting gracefully...`);
+                process.exitCode = 0;
+                // Flush stdout and stderr, then exit  
+                if (process.stdout.writableEnded === false) {
+                    process.stdout.once('drain', () => process.exit(0));
+                    if (!process.stdout.write('')) {
+                        process.stdout.once('drain', () => process.exit(0));
+                    } else {
+                        process.exit(0);
+                    }
+                } else {
+                    process.exit(0);
+                }
+            };
+        };
+        
+        process.on('SIGTERM', handleTermination('SIGTERM'));
+        process.on('SIGINT', handleTermination('SIGINT'));
     });
 
 program.parse(process.argv);
