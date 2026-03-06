@@ -31,6 +31,25 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
+                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+
+                    namespace global;
+
+                    public partial class Vehicle 
+                    {
+
+                        public string Make { get; set; }
+
+                        public string Model { get; set; }
+
+                        public int Year { get; set; }
+
+                    }
+                    """
+
             When Emma modifies the file "vehicle.md" to:
                 """
                 ```mermaid
@@ -243,6 +262,22 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the corresponding output files exist
                 And Emma records the hash of "output/code/global/TempClass.Generated.cs"
+                And the file "output/code/global/TempClass.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+
+                    namespace global;
+
+                    public partial class TempClass 
+                    {
+
+                        public string Name { get; set; }
+
+                        public int Version { get; set; }
+
+                    }
+                    """
             When Emma deletes the file "temp-class.md"
              #   And Emma waits for the file watcher to detect changes
             Then the file "output/global/TempClass.Generated.yml" should be removed
@@ -308,6 +343,20 @@ Background: File watching system testing environment
                 And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
                 And the watch process is running
                 And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
+                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+
+                    namespace global;
+
+                    public partial class Vehicle 
+                    {
+
+                        public string Make { get; set; }
+
+                    }
+                    """
             When Emma modifies the file "vehicle.yml" to:
                 """
                 Name: Vehicle
