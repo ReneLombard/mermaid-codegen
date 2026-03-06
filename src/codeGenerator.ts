@@ -109,7 +109,12 @@ export class CodeGenerator {
                     const jsonData: any = JSON.parse(jsonString);
                     const compiledTemplate: HandlebarsTemplateDelegate = Handlebars.compile(file.content.toString());
 
-                    const result: string = compiledTemplate(jsonData);
+                    let result: string = compiledTemplate(jsonData);
+
+                    // Normalize line endings and remove excessive blank lines for cross-platform consistency
+                    result = result
+                        .replace(/\r\n/g, '\n') // Normalize CRLF to LF
+                        .replace(/\n\n\n+/g, '\n\n'); // Replace multiple consecutive newlines with double newline
 
                     console.log(`DEBUG: Result preview: ${result.substring(0, 100)}...`);
 
