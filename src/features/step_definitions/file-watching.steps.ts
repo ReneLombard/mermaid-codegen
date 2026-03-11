@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CustomWorld } from '../support/world';
 
-// Hash calculation utility
+// Hash calculation utility (also defined in common.steps.ts for independence)
 function calculateFileHash(filePath: string): string {
     if (!fs.existsSync(filePath)) {
         return '';
@@ -241,14 +241,3 @@ Then(
 );
 
 // Note: File creation and removal steps are handled by common.steps.ts to avoid duplicate definitions
-
-// Export the hash calculation utility for use in other step files
-declare global {
-    namespace NodeJS {
-        interface Global {
-            calculateFileHash: typeof calculateFileHash;
-        }
-    }
-}
-
-(global as any).calculateFileHash = calculateFileHash;

@@ -11,7 +11,10 @@ Background: End-to-end workflow testing environment
     Test scope: Complete workflow validation, error handling, and output quality
 
         Given Frank has established a clean test workspace
-            And the complete mermaid-codegen toolchain is available
+            And Frank has set the target language to "C#"
+            And Frank has set the project directory to "output/"
+            And the file watching service is available
+        When Frank runs "mermaid-codegen initialize -l C# -d output/"
             And compilation tools are prepared for validation
 
     Scenario: Complete workflow from Mermaid to C# code generation
@@ -47,8 +50,77 @@ Background: End-to-end workflow testing environment
             When Frank runs "mermaid-codegen transform -i comprehensive.md -o output/yml"
             And Frank runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
             Then files "output/yml/Company/VTC/Models/Vehicle.yml" and "output/yml/Company/VTC/Controllers/VehiclesController.yml" should be created
-                And a file "output/code/Company/VTC/Models/Vehicle.Generated.cs" should be created
-                And a file "output/code/Company/VTC/Controllers/VehiclesController.Generated.cs" should be created
+                And a file "output/code/Models/Vehicle.Generated.cs" should be created
+                And the file "output/code/Models/Vehicle.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+
+                    namespace Company.VTC.Models;
+
+                    public partial class Vehicle 
+                    {
+
+                        public string Make { get; set; }
+
+                        public string Model { get; set; }
+
+                        public int Year { get; set; }
+
+                        public string Status { get; set; }
+
+                    }
+                    """
+                And a file "output/code/Controllers/VehiclesController.Generated.cs" should be created
+                And the file "output/code/Controllers/VehiclesController.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Threading;
+                    using System.Threading.Tasks;
+                    using Microsoft.AspNetCore.Mvc;
+
+                    namespace Company.VTC.Controllers
+                    {
+
+                    [ApiController]
+                    [Route("[controller]")]
+                    public partial class VehiclesController : ControllerBase
+                    {
+
+                            private List<returns> returns;
+
+                            [HttpGet]
+                            public async Task<ActionResult<Task<ActionResult<Vehicle>>>> GetVehicleByMake(string make, CancellationToken cancellationToken = default)
+                            {
+                                var result = await OnGetVehicleByMake(make, cancellationToken);
+                                return Ok(result);
+                            }
+
+                            protected partial Task<Task<ActionResult<Vehicle>>> OnGetVehicleByMake(string make, CancellationToken cancellationToken = default);
+
+                            [HttpGet]
+                            public async Task<ActionResult<Task<ActionResult<List<Vehicle>>>>> GetAllVehicles(CancellationToken cancellationToken = default)
+                            {
+                                var result = await OnGetAllVehicles(cancellationToken);
+                                return Ok(result);
+                            }
+
+                            protected partial Task<Task<ActionResult<List<Vehicle>>>> OnGetAllVehicles(CancellationToken cancellationToken = default);
+
+                            [HttpGet]
+                                    public async Task<ActionResult<Task<ActionResult<Vehicle>>>> AddVehicle(Vehicle vehicle, CancellationToken cancellationToken = default)
+                            {
+                                var result = await OnAddVehicle(vehicle, cancellationToken);
+                                return Ok(result);
+                            }
+
+                            protected partial Task<Task<ActionResult<Vehicle>>> OnAddVehicle(Vehicle vehicle, CancellationToken cancellationToken = default);
+
+                    }
+
+                    }
+                    """
                 And Frank can compile the generated code with "dotnet build output/code" successfully
                 And the controller should reference the Vehicle model correctly
 

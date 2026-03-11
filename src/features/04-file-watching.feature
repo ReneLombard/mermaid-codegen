@@ -321,7 +321,7 @@ Background: File watching system testing environment
 
     Scenario: Watch handles invalid YAML content gracefully
         Ensure watcher continues running and logs errors when invalid YAML is detected
-                        Given Emma has created a file "vehicle.yml" with content:
+            Given Emma has created a file "vehicle.yml" with content:
                                 """
                                 Name: Vehicle
                                 Namespace: global
@@ -378,6 +378,20 @@ Background: File watching system testing environment
                 And the watch process should continue running
                 And the watch process should not crash
                 And Emma verifies the hash of "output/code/global/Vehicle.Generated.cs" has not changed
+                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                    """
+                    using System;
+                    using System.Collections.Generic;
+
+                    namespace global;
+
+                    public partial class Vehicle 
+                    {
+
+                        public string Make { get; set; }
+
+                    }
+                    """
                 And no new code files should be generated for the invalid content
 
         @manual

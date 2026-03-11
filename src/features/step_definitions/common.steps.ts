@@ -3,7 +3,6 @@ import * as assert from 'assert';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { stderr, stdout } from 'process';
 import { CustomWorld } from '../support/world';
 
 // Utility function to normalize indentation in multi-line strings
@@ -133,66 +132,6 @@ Given('the file watching service is available', async function (this: CustomWorl
 
 Given('compilation tools are prepared for validation', function (this: CustomWorld) {
     this.attach('Compilation tools prepared');
-});
-
-Given('the complete mermaid-codegen toolchain is available', async function (this: CustomWorld) {
-    const csharpTemplatesDir = path.join(this.workspaceDir, 'Templates', 'C#');
-    await fs.promises.mkdir(csharpTemplatesDir, { recursive: true });
-
-    // Create basic templates for testing
-    const classTemplate = `namespace {{Namespace}}
-{
-    public partial class {{Name}}
-    {
-{{#each Attributes}}
-        public {{Type}} {{Name}} { get; set; }
-{{/each}}
-    }
-}`;
-    await fs.promises.writeFile(path.join(csharpTemplatesDir, 'class.csharp.hbs'), classTemplate, 'utf-8');
-
-    const endpointTemplate = `using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-
-namespace {{Namespace}}
-{
-    [ApiController]
-    [Route("[controller]")]
-    public partial class {{Name}} : ControllerBase
-    {
-{{#each Methods}}
-        [HttpGet]
-        public async Task<ActionResult<{{Type}}>> {{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default)
-        {
-            var result = await On{{Name}}({{#each Arguments}}{{Name}}, {{/each}}cancellationToken);
-            return Ok(result);
-        }
-
-        protected partial Task<{{Type}}> On{{Name}}({{#each Arguments}}{{Type}} {{Name}}, {{/each}}CancellationToken cancellationToken = default);
-
-{{/each}}
-    }
-}`;
-    await fs.promises.writeFile(path.join(csharpTemplatesDir, 'endpoint.csharp.hbs'), endpointTemplate, 'utf-8');
-
-    const configContent = JSON.stringify(
-        {
-            language: 'CSharp',
-            extension: 'cs',
-            mappings: {
-                Type: { Number: 'int', String: 'string' },
-                Scope: { Public: 'public', Private: 'private', Protected: 'protected' },
-            },
-        },
-        null,
-        4,
-    );
-    await fs.promises.writeFile(path.join(csharpTemplatesDir, 'config.json'), configContent, 'utf-8');
-
-    this.attach('Complete toolchain verified');
 });
 
 Given('YAML files containing class definitions are available', async function (this: CustomWorld) {
@@ -1048,8 +987,6 @@ Given(
                 (this.watchProcess?.pid || 'unknown') +
                 ')',
         );
-        if (stdout) this.attach('Watch stdout: ' + stdout);
-        if (stderr) this.attach('Watch stderr: ' + stderr);
     },
 );
 
