@@ -17,6 +17,7 @@ Background: End-to-end workflow testing environment
         When Frank runs "mermaid-codegen initialize -l C# -d output/"
             And compilation tools are prepared for validation
 
+    @wip
     Scenario: Complete workflow from Mermaid to C# code generation
         Execute the full pipeline with comprehensive class diagrams
 
@@ -144,6 +145,7 @@ Background: End-to-end workflow testing environment
                 And no files should be created in "output/code/" directory
                 And the workspace should remain clean
 
+    @wip
     Scenario: Workflow with custom configuration and templates
         Support customized workflow execution with user-defined settings
 

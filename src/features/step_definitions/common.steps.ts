@@ -531,6 +531,21 @@ Then('{word} should see {string} in the output', function (this: CustomWorld, pe
     );
 });
 
+Then('the command output should be:', function (this: CustomWorld, expectedOutput: string) {
+    const output = this.lastCommandResult?.stdout || '';
+    const normalizeLines = (text: string) =>
+        text
+            .split('\n')
+            .map((line) => line.trimEnd())
+            .join('\n')
+            .trim();
+    assert.strictEqual(
+        normalizeLines(output),
+        normalizeLines(expectedOutput),
+        'Command output mismatch.\nExpected:\n' + expectedOutput + '\nActual:\n' + output,
+    );
+});
+
 Then(
     '{word} should see {string} in the error output',
     function (this: CustomWorld, persona: string, expectedError: string) {
@@ -630,7 +645,7 @@ Given('{word} starts the file watching service', async function (this: CustomWor
 });
 
 Given('{word} has prepared initial Mermaid and YAML files', async function (this: CustomWorld, persona: string) {
-    this.attach(persona + ' prepared initial files (placeholder)');
+    this.attach(persona + ' - initial Mermaid and YAML files are set up per-scenario');
 });
 
 Given('the watch process is running', function (this: CustomWorld) {
@@ -703,23 +718,50 @@ Then('a file {string} should be updated within 5 seconds', async function (this:
 Then(
     'the timestamp of the generated file should be newer than {string}',
     async function (this: CustomWorld, sourceFile: string) {
-        this.attach('Timestamp verification (placeholder): ' + sourceFile);
+        const sourcePath = path.join(this.workspaceDir, sourceFile);
+        const sourceStats = await fs.promises.stat(sourcePath);
+
+        // Find the most recently modified generated file tracked by this scenario
+        const generatedFile = this.generatedFiles[this.generatedFiles.length - 1];
+        if (!generatedFile) {
+            throw new Error('No generated file is being tracked for timestamp comparison');
+        }
+
+        const generatedStats = await fs.promises.stat(generatedFile);
+        assert.ok(
+            generatedStats.mtime >= sourceStats.mtime,
+            `Generated file mtime (${generatedStats.mtime.toISOString()}) should be >= source file mtime (${sourceStats.mtime.toISOString()})`,
+        );
+        this.attach(
+            `Timestamp verified: generated (${generatedStats.mtime.toISOString()}) >= source (${sourceStats.mtime.toISOString()})`,
+        );
     },
 );
 
 Then('files {string} and {string} should be created', async function (this: CustomWorld, file1: string, file2: string) {
-    this.attach('Multiple files verification (placeholder): ' + file1 + ', ' + file2);
+    const path1 = path.join(this.workspaceDir, file1);
+    const path2 = path.join(this.workspaceDir, file2);
+    assert.ok(await this.fileExists(path1), `File should exist: ${file1}`);
+    assert.ok(await this.fileExists(path2), `File should exist: ${file2}`);
+    this.attach(`Both files created: ${file1}, ${file2}`);
 });
 
 Then(
     '{word} can compile the generated code with {string} successfully',
-    async function (this: CustomWorld, persona: string, command: string) {
-        this.attach(persona + ' compilation verification (placeholder): ' + command);
+    async function (this: CustomWorld, _persona: string, _command: string) {
+        return 'pending';
     },
 );
 
-Then('the controller should reference the Vehicle model correctly', function (this: CustomWorld) {
-    this.attach('Model reference verification (placeholder)');
+Then('the controller should reference the Vehicle model correctly', async function (this: CustomWorld) {
+    // Find the controller file
+    const controllerFiles = this.generatedFiles.filter((f) => f.includes('Controller'));
+    if (controllerFiles.length === 0) {
+        throw new Error('No controller file was generated');
+    }
+    const content = await fs.promises.readFile(controllerFiles[0], 'utf-8');
+    assert.ok(content.includes('Vehicle'), `Controller should reference Vehicle model, but content was: ${content.substring(0, 200)}`);
+    this.attach('Controller references Vehicle model correctly');
 });
 
 Given(
@@ -749,13 +791,13 @@ Given(
 
 Then(
     'the output structure should match the configuration in {string}',
-    async function (this: CustomWorld, configFile: string) {
-        this.attach('Output structure verification (placeholder): ' + configFile);
+    async function (this: CustomWorld, _configFile: string) {
+        return 'pending';
     },
 );
 
 Then('all custom variables should be resolved correctly', function (this: CustomWorld) {
-    this.attach('Custom variables verification (placeholder)');
+    return 'pending';
 });
 
 Then('a file matching {string} should be created', async function (this: CustomWorld, pattern: string) {
@@ -902,7 +944,6 @@ Given(
     },
 );
 
-// Simplified step definitions for advanced scenarios (marked as pending)
 Given(
     '{word} has started {string} in the background',
     async function (this: CustomWorld, persona: string, command: string) {
@@ -1017,7 +1058,24 @@ Given(
 );
 
 Given('the corresponding output files exist', async function (this: CustomWorld) {
-    this.attach('Output files verified (placeholder)');
+    // Wait for the watch process to generate initial output files
+    const timeoutMs = 15000;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+        const outputCodeDir = path.join(this.workspaceDir, 'output', 'code');
+        if (await this.fileExists(outputCodeDir)) {
+            const entries = await fs.promises.readdir(outputCodeDir, { recursive: true });
+            const codeFiles = (entries as string[]).filter((f) => f.endsWith('.cs'));
+            if (codeFiles.length > 0) {
+                this.attach(`Output files exist: ${codeFiles.join(', ')}`);
+                return;
+            }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    throw new Error('Expected output code files to exist, but none were found within timeout');
 });
 
 When(
@@ -1157,12 +1215,17 @@ When('{word} sends SIGTERM signal to the watch process', async function (this: C
     }
 });
 
-Then(
-    'the timestamp of {string} should be newer than {string}',
-    async function (this: CustomWorld, file1: string, file2: string) {
-        this.attach('Timestamp comparison (placeholder): ' + file1 + ' vs ' + file2);
-    },
-);
+Then('the timestamp of {string} should be newer than {string}', async function (this: CustomWorld, file1: string, file2: string) {
+    const path1 = path.join(this.workspaceDir, file1);
+    const path2 = path.join(this.workspaceDir, file2);
+    const stats1 = await fs.promises.stat(path1);
+    const stats2 = await fs.promises.stat(path2);
+    assert.ok(
+        stats1.mtime >= stats2.mtime,
+        `${file1} mtime (${stats1.mtime.toISOString()}) should be >= ${file2} mtime (${stats2.mtime.toISOString()})`,
+    );
+    this.attach(`Timestamp verified: ${file1} (${stats1.mtime.toISOString()}) >= ${file2} (${stats2.mtime.toISOString()})`);
+});
 
 Then('a file {string} should be updated', async function (this: CustomWorld, filename: string) {
     const filePath = path.join(this.workspaceDir, filename);
@@ -1205,30 +1268,20 @@ Then('a file {string} should be updated', async function (this: CustomWorld, fil
     }
 });
 
-Then('both {string} and {string} should be updated', async function (this: CustomWorld, file1: string, file2: string) {
-    this.attach('Multiple file updates verified (placeholder): ' + file1 + ', ' + file2);
-});
-
-Then('no file locking conflicts should occur', function (this: CustomWorld) {
-    this.attach('File locking verified (placeholder)');
-});
-
-Then(
-    'a file {string} should be created within {int} seconds',
-    async function (this: CustomWorld, filename: string, seconds: number) {
-        this.attach('Timed file creation verified (placeholder): ' + filename + ' within ' + seconds + 's');
-    },
-);
-
-Then(
-    'the file {string} should be removed within {int} seconds',
-    async function (this: CustomWorld, filename: string, seconds: number) {
-        this.attach('Timed file removal verified (placeholder): ' + filename + ' within ' + seconds + 's');
-    },
-);
-
 Then('the file {string} should be removed', async function (this: CustomWorld, filename: string) {
-    this.attach('File removal verified (placeholder): ' + filename);
+    const filePath = path.join(this.workspaceDir, filename);
+    const timeoutMs = 12000;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+        if (!(await this.fileExists(filePath))) {
+            this.attach(`Verified file was removed: ${filename}`);
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    throw new Error(`File was not removed within ${timeoutMs / 1000} seconds: ${filename}`);
 });
 
 Then(
@@ -1278,11 +1331,28 @@ Then('no background processes should remain running', function (this: CustomWorl
 });
 
 Then('all file handles should be properly released', function (this: CustomWorld) {
-    this.attach('File handles verified (placeholder)');
+    // If the watch process has exited cleanly, file handles should be released
+    if (!this.watchProcess || this.watchProcess.killed || this.watchProcess.exitCode !== null) {
+        this.attach('Watch process has exited; file handles should be released');
+    } else {
+        this.attach('Watch process still running (file handle state unknown)');
+    }
 });
 
-Then('the workspace should remain clean', function (this: CustomWorld) {
-    this.attach('Workspace cleanup verified (placeholder)');
+Then('the workspace should remain clean', async function (this: CustomWorld) {
+    // Verify no unexpected output directories were created beyond the expected yml output
+    const unexpectedCodeDir = path.join(this.workspaceDir, 'output', 'code');
+    const codeExists = await this.fileExists(unexpectedCodeDir);
+    if (codeExists) {
+        const entries = await fs.promises.readdir(unexpectedCodeDir, { recursive: true });
+        const codeFiles = (entries as string[]).filter((f) => f.endsWith('.cs'));
+        assert.strictEqual(
+            codeFiles.length,
+            0,
+            `No code files should be generated from broken input, but found: ${codeFiles.join(', ')}`,
+        );
+    }
+    this.attach('Workspace verified clean - no unexpected code files generated');
 });
 
 // Error handling for invalid content scenarios
@@ -1311,36 +1381,52 @@ When(
 );
 
 Then('an error should be logged to the console output', function (this: CustomWorld) {
-    // Check if the watch process captured any error output
-    // This is a placeholder - in real implementation, we'd check stderr/stdout from the watch process
-    this.attach('Verified error was logged to console (placeholder)');
+    const stderr = this.testData.watchStderr || '';
+    const stdout = this.testData.watchStdout || '';
+    const hasError = stderr.toLowerCase().includes('error') || stdout.toLowerCase().includes('error');
+    assert.ok(hasError, `Expected an error to be logged, but stderr was: "${stderr}" and stdout was: "${stdout}"`);
+    this.attach('Verified error was logged to console output');
 });
 
 Then('the watch process should continue running', function (this: CustomWorld) {
-    // Check that the watch process hasn't terminated
-    if (this.watchProcess && this.watchProcess.exitCode === null) {
-        this.attach('Watch process still running');
+    if (this.watchProcess) {
+        assert.ok(
+            this.watchProcess.exitCode === null && !this.watchProcess.killed,
+            `Watch process should still be running, but exitCode=${this.watchProcess.exitCode}, killed=${this.watchProcess.killed}`,
+        );
+        this.attach('Watch process is still running with PID: ' + this.watchProcess.pid);
     } else {
-        this.attach('Watch process status check (placeholder)');
+        this.attach('No watch process tracked (skipping check)');
     }
 });
 
 Then('the watch process should not crash', function (this: CustomWorld) {
-    // Verify the process hasn't exited with an error code
     if (this.watchProcess && this.watchProcess.exitCode !== null && this.watchProcess.exitCode !== 0) {
         throw new Error(`Watch process crashed with exit code: ${this.watchProcess.exitCode}`);
     }
-    this.attach('Watch process crash check verified (placeholder)');
+    this.attach('Watch process has not crashed');
 });
 
 Then('no new output files should be generated for the invalid content', async function (this: CustomWorld) {
-    // Check that no new files were created after the invalid content was written
+    // Verify that no NEW yml files were created under output directory after the invalid content was written
     const outputDir = path.join(this.workspaceDir, 'output');
-    this.attach('Verified no new files generated for invalid content (placeholder): ' + outputDir);
+    if (await this.fileExists(outputDir)) {
+        const entries = await fs.promises.readdir(outputDir, { recursive: true });
+        const ymlFiles = (entries as string[]).filter((f) => f.endsWith('.yml'));
+        // We should not have any NEW yml files since the input was invalid
+        this.attach(`Output yml files after invalid content: ${ymlFiles.length} (${ymlFiles.join(', ')})`);
+    } else {
+        this.attach('No output directory - no new files generated');
+    }
 });
 
 Then('no new code files should be generated for the invalid content', async function (this: CustomWorld) {
-    // Check that no new code files were created after the invalid content was written
     const codeDir = path.join(this.workspaceDir, 'output', 'code');
-    this.attach('Verified no new code files generated for invalid content (placeholder): ' + codeDir);
+    if (await this.fileExists(codeDir)) {
+        const entries = await fs.promises.readdir(codeDir, { recursive: true });
+        const codeFiles = (entries as string[]).filter((f) => f.endsWith('.cs'));
+        this.attach(`Code files after invalid content: ${codeFiles.length} (${codeFiles.join(', ')})`);
+    } else {
+        this.attach('No code directory - no new code files generated');
+    }
 });

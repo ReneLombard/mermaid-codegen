@@ -34,7 +34,7 @@ interface WatchOptions {
     generateOutput?: string;
     templates?: string;
     namespace?: string;
-    skipnamespace?: boolean;
+    skipnamespace?: string;
 }
 
 /** Debounce utility to prevent rapid-fire executions */
@@ -177,19 +177,24 @@ program
         console.log(`Code generation output: ${generateOutput}`);
         console.log(`Templates: ${templates}`);
         console.log(`Templates exists: ${fs.existsSync(templates)}`);
+
+        // Enable polling in test mode or when explicitly requested
+        const isTestMode = process.env.NODE_ENV === 'test' || process.argv.includes('--test-mode');
+        const enablePolling = isTestMode || process.argv.includes('--poll');
+
         // Watch Mermaid changes
         const mermaidInputPath: string = path.isAbsolute(mermaidInput) ? mermaidInput : path.resolve(mermaidInput);
 
         const mermaidWatcher: chokidar.FSWatcher = chokidar.watch(mermaidInputPath, {
             ignored: (watchPath: string, stats?: Stats): boolean => !!(stats?.isFile() && !watchPath.endsWith('.md')),
             persistent: true,
-            usePolling: true,
-            interval: 100, // Very fast polling for tests
-            binaryInterval: 300,
+            usePolling: enablePolling,
+            interval: isTestMode ? 100 : 1000,
+            binaryInterval: isTestMode ? 300 : 1000,
             ignoreInitial: false,
-            atomic: false, // Disable atomic to catch intermediate changes
+            atomic: !isTestMode,
             alwaysStat: true,
-            awaitWriteFinish: false, // Don't wait for write finish to get immediate notifications
+            awaitWriteFinish: !isTestMode,
         });
 
         // Change tracker for mermaid files
@@ -229,7 +234,7 @@ program
                     commandHandler.handleTransformCommand({
                         input: filePath,
                         output: ymlInput!,
-                        skipnamespace: opts.skipnamespace ? 'true' : undefined,
+                        skipnamespace: opts.skipnamespace,
                     }),
                 );
                 console.log('Transform completed, triggering code generation...');
@@ -256,72 +261,69 @@ program
             handleMermaidChange(filePath);
         });
 
-        // Manual polling fallback for Mermaid file changes (enhanced for test environments)
-        const mermaidFileStates = new Map<string, number>();
+        // Manual polling fallback for Mermaid file changes (only in test/poll mode)
+        if (enablePolling) {
+            const mermaidFileStates = new Map<string, number>();
 
-        const pollForMermaidChanges = () => {
-            try {
-                const files = fs
-                    .readdirSync(mermaidInputPath)
-                    .filter((file: string) => file.endsWith('.md'))
-                    .map((file: string) => path.join(mermaidInputPath, file));
+            const pollForMermaidChanges = () => {
+                try {
+                    const files = fs
+                        .readdirSync(mermaidInputPath)
+                        .filter((file: string) => file.endsWith('.md'))
+                        .map((file: string) => path.join(mermaidInputPath, file));
 
-                for (const filePath of files) {
-                    try {
-                        // Get a fresh stat by forcing file system to check again
-                        delete require.cache[filePath]; // Clear any requires cache
-                        const stats = fs.statSync(filePath);
-                        const currentMtime = stats.mtime.getTime();
-                        const lastMtime = mermaidFileStates.get(filePath);
-                        
-                        // Read content only in test environment for fallback detection
-                        const tempBuffer = process.env.NODE_ENV === 'test' ? fs.readFileSync(filePath, { encoding: 'utf8' }) : null;
+                    for (const filePath of files) {
+                        try {
+                            const stats = fs.statSync(filePath);
+                            const currentMtime = stats.mtime.getTime();
+                            const lastMtime = mermaidFileStates.get(filePath);
 
-                        if (!lastMtime) {
-                            // First time seeing this file, just record the time
-                            mermaidFileStates.set(filePath, currentMtime);
-                        } else if (currentMtime > lastMtime || (process.env.NODE_ENV === 'test' && tempBuffer && (tempBuffer.includes('Color') || tempBuffer.includes('NewProperty')))) {
-                            // Detected file change (including content-based detection for test environments)
-                            console.log(`Detected change in Mermaid file: ${filePath}`);
+                            if (!lastMtime) {
+                                // First time seeing this file, just record the time
+                                mermaidFileStates.set(filePath, currentMtime);
+                            } else if (currentMtime > lastMtime) {
+                                // Detected file change
+                                console.log(`Detected change in Mermaid file: ${filePath}`);
 
-                            // Update the recorded time before processing to prevent duplicates
-                            mermaidFileStates.set(filePath, currentMtime);
+                                // Update the recorded time before processing to prevent duplicates
+                                mermaidFileStates.set(filePath, currentMtime);
 
-                            // Process the change using the correct command path
-                            (async () => {
-                                try {
-                                    await attemptTask(() =>
-                                        commandHandler.handleTransformCommand({
-                                            input: filePath,
-                                            output: ymlInput!,
-                                            skipnamespace: opts.skipnamespace ? 'true' : undefined,
-                                        }),
-                                    );
-                                    await attemptTask(() =>
-                                        commandHandler.handleGenerateCommand({
-                                            input: ymlInput!,
-                                            output: generateOutput!,
-                                            templates: templates!,
-                                        }),
-                                    );
-                                    console.log(`Processing completed for: ${filePath}`);
-                                } catch (err: any) {
-                                    console.error('Error during fallback transform/generate process:', err.message);
-                                }
-                            })();
+                                // Process the change using the correct command path
+                                (async () => {
+                                    try {
+                                        await attemptTask(() =>
+                                            commandHandler.handleTransformCommand({
+                                                input: filePath,
+                                                output: ymlInput!,
+                                                skipnamespace: opts.skipnamespace,
+                                            }),
+                                        );
+                                        await attemptTask(() =>
+                                            commandHandler.handleGenerateCommand({
+                                                input: ymlInput!,
+                                                output: generateOutput!,
+                                                templates: templates!,
+                                            }),
+                                        );
+                                        console.log(`Processing completed for: ${filePath}`);
+                                    } catch (err: any) {
+                                        console.error('Error during fallback transform/generate process:', err.message);
+                                    }
+                                })();
+                            }
+                        } catch (err) {
+                            console.log(`Manual polling error for file ${filePath}: ${err}`);
                         }
-                    } catch (err) {
-                        console.log(`Manual polling error for file ${filePath}: ${err}`);
                     }
+                } catch (err) {
+                    console.log(`Manual polling directory error: ${err}`);
                 }
-            } catch (err) {
-                console.log(`Manual polling directory error: ${err}`);
-            }
 
-            setTimeout(pollForMermaidChanges, 250); // Fast polling for responsive tests
-        };
+                setTimeout(pollForMermaidChanges, isTestMode ? 250 : 1000);
+            };
 
-        setTimeout(pollForMermaidChanges, 2000); // Start polling after 2 seconds
+            setTimeout(pollForMermaidChanges, 2000); // Start polling after 2 seconds
+        }
 
         // Watch YML changes - only watch input directory to prevent infinite loops from generated files
         console.log(`Watching YML files in: ${mermaidInput}`);
@@ -338,11 +340,11 @@ program
                 return false;
             },
             persistent: true,
-            usePolling: true,
-            interval: 500, // Slower polling to reduce system load
-            binaryInterval: 1000,
+            usePolling: enablePolling,
+            interval: isTestMode ? 500 : 1000,
+            binaryInterval: isTestMode ? 1000 : 2000,
             ignoreInitial: false,
-            atomic: false,
+            atomic: !isTestMode,
             alwaysStat: true,
         });
 

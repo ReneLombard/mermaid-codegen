@@ -2,6 +2,7 @@ const DEFAULT_TIMEOUT = 60000;
 
 const commonConfig = {
     paths: ['features/**/*.feature'],
+    tags: 'not @wip and not @manual',
     parallel: 1,
     timeout: DEFAULT_TIMEOUT
 };

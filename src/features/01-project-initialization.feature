@@ -36,8 +36,12 @@ Background: Project initialization testing environment
         Verify that supported languages are properly displayed
 
             When Alice runs "mermaid-codegen list-languages"
-            Then Alice should see "C#" in the output
-                And Alice should see "Documentation" in the output
+            Then the command output should be:
+                """
+                Available languages:
+                C#
+                Documentation
+                """
                 And the command should return exit code 0
 
     Scenario: Handle invalid language selection gracefully
