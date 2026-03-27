@@ -17,7 +17,6 @@ Background: End-to-end workflow testing environment
         When Frank runs "mermaid-codegen initialize -l C# -d output/"
             And compilation tools are prepared for validation
 
-    @wip
     Scenario: Complete workflow from Mermaid to C# code generation
         Execute the full pipeline with comprehensive class diagrams
 
@@ -50,7 +49,7 @@ Background: End-to-end workflow testing environment
             """
             When Frank runs "mermaid-codegen transform -i comprehensive.md -o output/yml"
             And Frank runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
-            Then files "output/yml/Company/VTC/Models/Vehicle.yml" and "output/yml/Company/VTC/Controllers/VehiclesController.yml" should be created
+            Then files "output/yml/Company/VTC/Models/Vehicle.Generated.yml" and "output/yml/Company/VTC/Controllers/VehiclesController.Generated.yml" should be created
                 And a file "output/code/Models/Vehicle.Generated.cs" should be created
                 And the file "output/code/Models/Vehicle.Generated.cs" should contain:
                     """
@@ -145,7 +144,6 @@ Background: End-to-end workflow testing environment
                 And no files should be created in "output/code/" directory
                 And the workspace should remain clean
 
-    @wip
     Scenario: Workflow with custom configuration and templates
         Support customized workflow execution with user-defined settings
 

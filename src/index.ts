@@ -178,6 +178,42 @@ program
         console.log(`Templates: ${templates}`);
         console.log(`Templates exists: ${fs.existsSync(templates)}`);
 
+        // Recursively find files matching a predicate under a root directory.
+        const scanRecursive = (dirPath: string, predicate: (name: string) => boolean): string[] => {
+            const files: string[] = [];
+            if (!fs.existsSync(dirPath)) {
+                return files;
+            }
+
+            const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dirPath, entry.name);
+                if (entry.isDirectory()) {
+                    files.push(...scanRecursive(fullPath, predicate));
+                } else if (entry.isFile() && predicate(entry.name)) {
+                    files.push(fullPath);
+                }
+            }
+
+            return files;
+        };
+
+        // Safe, non-destructive single-file delete helper.
+        const deleteIfExists = (filePath: string): void => {
+            if (fs.existsSync(filePath)) {
+                fs.rmSync(filePath, { force: true });
+            }
+        };
+
+        // Locate generated artifacts for one class name without touching unrelated files.
+        const findGeneratedFilesForClass = (rootDir: string, className: string): string[] => {
+            return scanRecursive(rootDir, (fileName: string) => fileName.includes(`${className}.Generated.`));
+        };
+
+        // Tracks which classes were produced from each Mermaid source file in this watcher session.
+        // Used to perform targeted cleanup when a source file is deleted.
+        const mermaidSourceClasses = new Map<string, Set<string>>();
+
         // Enable polling in test mode or when explicitly requested
         const isTestMode = process.env.NODE_ENV === 'test' || process.argv.includes('--test-mode');
         const enablePolling = isTestMode || process.argv.includes('--poll');
@@ -203,7 +239,10 @@ program
             processing: new Set<string>(),
         };
 
-        // Debounced change handler to prevent rapid-fire triggers
+        // Debounced handler for Mermaid add/change:
+        // 1) transform current source to YAML
+        // 2) regenerate code
+        // 3) capture class names for targeted delete on future unlink events
         const handleMermaidChange = debounce(async (filePath: string) => {
             const stats = fs.statSync(filePath);
             const currentMtime = stats.mtime.getTime();
@@ -245,6 +284,21 @@ program
                         templates: templates!,
                     }),
                 );
+
+                try {
+                    const mermaidContent = fs.readFileSync(filePath, 'utf8');
+                    const classMatches = mermaidContent.match(/\bclass\s+([A-Za-z_][A-Za-z0-9_]*)/g) || [];
+                    const classNames = classMatches
+                        .map((classMatch: string) => classMatch.replace(/\bclass\s+/, '').trim())
+                        .filter((className: string) => className.length > 0);
+
+                    if (classNames.length > 0) {
+                        mermaidSourceClasses.set(filePath, new Set<string>(classNames));
+                    }
+                } catch (readErr: any) {
+                    console.warn(`Unable to capture classes for Mermaid file ${filePath}: ${readErr.message}`);
+                }
+
                 console.log(`*** COMPLETED PROCESSING: ${filePath} ***`);
                 mermaidTracker.lastProcessed.set(filePath, currentMtime);
             } catch (err: any) {
@@ -259,6 +313,34 @@ program
         mermaidWatcher.on('add', (filePath: string) => {
             console.log(`Mermaid file added: ${filePath}`);
             handleMermaidChange(filePath);
+        });
+
+        // On Mermaid delete, remove only generated artifacts for classes that came from this source.
+        mermaidWatcher.on('unlink', async (filePath: string) => {
+            console.log(`Mermaid file removed: ${filePath}`);
+            mermaidTracker.lastProcessed.delete(filePath);
+
+            const classesFromSource = mermaidSourceClasses.get(filePath);
+            mermaidSourceClasses.delete(filePath);
+
+            if (!classesFromSource || classesFromSource.size === 0) {
+                return;
+            }
+
+            for (const className of classesFromSource) {
+                const ymlFiles = findGeneratedFilesForClass(ymlInput!, className);
+                const codeFiles = findGeneratedFilesForClass(generateOutput!, className);
+
+                for (const ymlFile of ymlFiles) {
+                    deleteIfExists(ymlFile);
+                    console.log(`Removed generated YML file: ${ymlFile}`);
+                }
+
+                for (const codeFile of codeFiles) {
+                    deleteIfExists(codeFile);
+                    console.log(`Removed generated code file: ${codeFile}`);
+                }
+            }
         });
 
         // Manual polling fallback for Mermaid file changes (only in test/poll mode)
@@ -354,7 +436,7 @@ program
             processing: new Set<string>(),
         };
 
-        // Debounced YML change handler
+        // Debounced handler for YAML add/change: regenerate code from the changed YAML location.
         const handleYmlChange = debounce(async (filePath: string) => {
             const stats = fs.statSync(filePath);
             const currentMtime = stats.mtime.getTime();
@@ -457,14 +539,22 @@ program
                                 const stats = fs.statSync(filePath);
                                 const currentMtime = stats.mtime.getTime();
                                 const lastMtime = fileStates.get(filePath);
-                                
+
                                 // Read content only in test environment for fallback detection
-                                const tempBuffer = process.env.NODE_ENV === 'test' ? fs.readFileSync(filePath, { encoding: 'utf8' }) : null;
+                                const tempBuffer =
+                                    process.env.NODE_ENV === 'test'
+                                        ? fs.readFileSync(filePath, { encoding: 'utf8' })
+                                        : null;
 
                                 if (!lastMtime) {
                                     // First time seeing this file, just record the time
                                     fileStates.set(filePath, currentMtime);
-                                } else if (currentMtime > lastMtime || (process.env.NODE_ENV === 'test' && tempBuffer && (tempBuffer.includes('Integer') || tempBuffer.includes('NewType')))) {
+                                } else if (
+                                    currentMtime > lastMtime ||
+                                    (process.env.NODE_ENV === 'test' &&
+                                        tempBuffer &&
+                                        (tempBuffer.includes('Integer') || tempBuffer.includes('NewType')))
+                                ) {
                                     // Detected file change (including content-based detection for test environments)
                                     console.log(`Detected change in YAML file: ${filePath}`);
 
@@ -516,6 +606,22 @@ program
             })
             .on('unlink', (filePath: string) => {
                 console.log(`YML file removed: ${filePath}`);
+                ymlTracker.lastProcessed.delete(filePath);
+
+                // For generated YAML deletions, derive class name from *.Generated.yml/yaml and
+                // delete only matching generated code files.
+                const fileName = path.basename(filePath);
+                const className = fileName.replace(/\.Generated\.(yml|yaml)$/i, '');
+
+                if (className.length === 0 || className === fileName) {
+                    return;
+                }
+
+                const codeFiles = findGeneratedFilesForClass(generateOutput!, className);
+                for (const codeFile of codeFiles) {
+                    deleteIfExists(codeFile);
+                    console.log(`Removed generated code file: ${codeFile}`);
+                }
             })
             .on('addDir', (dirPath: string) => {
                 console.log(`Directory added: ${dirPath}`);
@@ -530,7 +636,7 @@ program
             return () => {
                 console.log(`Received ${signal}, exiting gracefully...`);
                 process.exitCode = 0;
-                // Flush stdout and stderr, then exit  
+                // Flush stdout and stderr, then exit
                 if (process.stdout.writableEnded === false) {
                     process.stdout.once('drain', () => process.exit(0));
                     if (!process.stdout.write('')) {
@@ -543,7 +649,7 @@ program
                 }
             };
         };
-        
+
         process.on('SIGTERM', handleTermination('SIGTERM'));
         process.on('SIGINT', handleTermination('SIGINT'));
     });
