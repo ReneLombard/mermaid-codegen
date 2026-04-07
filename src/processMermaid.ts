@@ -83,13 +83,22 @@ export class MermaidTransformer {
         // Regex to find ```mermaid + classdiagram blocks
         const regex = /```mermaid\s*([\s\S]*?classdiagram[\s\S]*?)```/gim;
         let match: RegExpExecArray | null;
+        let errorMessages: string[] = [];
+
         while ((match = regex.exec(mermaidFileContent)) !== null) {
             try {
                 // Parse each code block separately
                 this.parser.parse(match[1]);
             } catch (error) {
-                console.error('Error parsing Mermaid code block:', (error as Error).message);
+                const errorMsg = `Error parsing Mermaid code block: ${(error as Error).message}`;
+                console.error(errorMsg);
+                errorMessages.push(errorMsg);
             }
+        }
+
+        // If there were parsing errors, throw them
+        if (errorMessages.length > 0) {
+            throw new Error(`Mermaid parsing failed: ${errorMessages.join('; ')}`);
         }
 
         // After parsing all blocks, generate YAML files

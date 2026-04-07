@@ -1,11 +1,37 @@
-﻿src/build/*
-.vs/*
+﻿# Build outputs
+src/build/*
+src/dist/*
+build/
+dist/
+test.md
 
+# IDE/Editor files
+.vs/*
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated/Downloaded files
 .npmrc
 classDiagramParser.js
 package-lock.json
 *.jison
+
+# Output directories
 output/*
+test-workspace/
+test-debug/
+test-output/*
+# Test and coverage reports
+coverage/
+.nyc_output/
+cucumber-report.html
+cucumber-report.json
+*.lcov
+test-results/
 
 # Logs
 logs
@@ -56,6 +82,21 @@ web_modules/
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# MacOS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Optional npm cache directory
 .npm
@@ -137,9 +178,26 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux specific files
+*~
+
 # yarn v2
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Project specific ignore patterns
+mermaid.md
+
+# Backup and temporary test files
+*.bak
+*.backup
+test-*.md
+debug-*.json

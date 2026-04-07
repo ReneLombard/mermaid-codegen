@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 {{#each Usings}}
 using {{@key}};
@@ -11,8 +13,8 @@ namespace {{this.Namespace}}
 {{/if}}
 
 [ApiController]
-[Route("api/[controller]")]
-public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+[Route("[controller]")]
+public partial class {{Name}} : ControllerBase{{#if this.Inheritance}}{{#each this.Inheritance}}, {{@key}}{{/each}}{{/if}}
 {
     
 {{!-- Compositions --}}
@@ -57,20 +59,33 @@ public partial class {{Name}} : ControllerBase {{#if this.Inheritance}}, {{#each
 
     {{!-- Methods as API Endpoints --}}
     {{#each Methods}}
-        {{!-- Route attribute --}}
+        {{!-- Determine HTTP method and route --}}
         {{#if this.HttpMethod}}
-        [Http{{capitalize this.HttpMethod}}("{{this.Route}}")]
+        [Http{{capitalize this.HttpMethod}}{{#if this.Route}}("{{this.Route}}"){{/if}}]
         {{else}}
-        [HttpGet("{{@key}}")] {{!-- Default to GET if HttpMethod is not specified --}}
+        {{!-- Auto-determine HTTP method based on method name --}}
+        {{#if (startsWith @key "Get")}}
+        [HttpGet]
+        {{else if (startsWith @key "Post")}}
+        [HttpPost]
+        {{else if (startsWith @key "Put")}}
+        [HttpPut]
+        {{else if (startsWith @key "Delete")}}
+        [HttpDelete]
+        {{else}}
+        [HttpGet]
         {{/if}}
-        {{!-- The public endpoint method (with a basic body) --}}
-        {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} {{{Type}}} {{@key}}({{#if this.Arguments}}{{#each this.Arguments}}[From{{#if (isEq ../this.HttpMethod "POST")}}Body{{else if (isEq ../this.HttpMethod "DELETE")}}Query{{else}}Query{{/if}}] {{this.Type}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}{{/if}})
+        {{/if}}
+        {{!-- The public endpoint method --}}
+        public async Task<ActionResult<{{{this.Type}}}>> {{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Type}} {{this.Name}}, {{/each}}{{/if}}CancellationToken cancellationToken = default)
         {
-            return On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}});
+            var result = await On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Name}}, {{/each}}{{/if}}cancellationToken);
+            return Ok(result);
         }
 
-        {{!-- The partial method hook with the same signature --}}
-        private partial IActionResult On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Type}} {{this.Name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}});
+        {{!-- The protected partial method hook --}}
+        protected partial Task<{{{this.Type}}}> On{{@key}}({{#if this.Arguments}}{{#each this.Arguments}}{{this.Type}} {{this.Name}}, {{/each}}{{/if}}CancellationToken cancellationToken = default);
+
     {{/each}}
 }
 

@@ -1,0 +1,41 @@
+module.exports = {
+    root: true,
+    env: {
+        node: true,
+        es2022: true,
+        jest: true,
+    },
+    parser: "@typescript-eslint/parser",
+    plugins: ["@typescript-eslint", "unused-imports"],
+    extends: ["eslint:recommended"],
+    ignorePatterns: [
+        "dist/**",
+        "coverage/**",
+        "test-output/**",
+        "temp/**",
+        "__tests__/**",
+        "features/**",
+        "**/*.test.ts",
+        "cucumber-report.*",
+    ],
+    rules: {
+        "no-undef": "off",
+        "no-useless-escape": "off",
+        "prefer-rest-params": "off",
+        "no-constant-condition": "off",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-require-imports": "off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+            "error",
+            {
+                vars: "all",
+                varsIgnorePattern: "^_",
+                args: "after-used",
+                argsIgnorePattern: "^_",
+            },
+        ],
+    },
+};

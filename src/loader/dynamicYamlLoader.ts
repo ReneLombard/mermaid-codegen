@@ -19,7 +19,7 @@ interface MergedClasses {
  */
 export class DynamicYamlLoader {
     /** Recursively loads all YAML files from a directory and merges classes with the same name */
-    static loadAndMergeYamlFiles(directory: string): DynamicYamlClass[] {
+    static loadAndMergeYamlFiles(inputPath: string): DynamicYamlClass[] {
         function getAllFiles(dir: string, fileList: string[] = []): string[] {
             const files = fs.readdirSync(dir);
 
@@ -36,23 +36,57 @@ export class DynamicYamlLoader {
             return fileList;
         }
 
-        const files = getAllFiles(directory);
+        let files: string[];
+
+        // Check if input is a single file or a directory
+        const stats = fs.statSync(inputPath);
+        if (stats.isFile()) {
+            // Single file
+            if (path.extname(inputPath) === '.yml' || path.extname(inputPath) === '.yaml') {
+                files = [inputPath];
+            } else {
+                throw new Error(`Invalid file type: ${inputPath}. Only .yml and .yaml files are supported.`);
+            }
+        } else if (stats.isDirectory()) {
+            // Directory
+            files = getAllFiles(inputPath).filter((file) => file.endsWith('.yml') || file.endsWith('.yaml'));
+        } else {
+            throw new Error(`Invalid input path: ${inputPath}`);
+        }
+
         console.log(`Found ${files.length} YAML files`);
 
         const mergedClasses: MergedClasses = {};
 
         files.forEach((file) => {
             //console.log(`Loading YAML file: ${file}`);
-            const yamlContent: YamlContent = YAML.load(file);
-            const className = yamlContent.Name;
-            //console.log(`Processing class: ${className}`);
+            try {
+                const fileContent = fs.readFileSync(file, 'utf8');
+                const yamlContent: YamlContent = YAML.parse(fileContent);
+                if (!yamlContent || typeof yamlContent !== 'object') {
+                    console.error(`Invalid YAML content in file: ${file}`);
+                    return; // Skip this file
+                }
+                const className = yamlContent.Name;
+                if (!className) {
+                    console.error(`YAML file missing 'Name' property: ${file}`);
+                    return; // Skip this file
+                }
+                //console.log(`Processing class: ${className}`);
 
-            if (!mergedClasses[className]) {
-                //console.log(`Creating new class entry for: ${className}`);
-                mergedClasses[className] = new DynamicYamlClass();
-                mergedClasses[className].properties = yamlContent;
-            } else {
-                mergedClasses[className].properties = this.mergeDeep(mergedClasses[className].properties, yamlContent);
+                if (!mergedClasses[className]) {
+                    //console.log(`Creating new class entry for: ${className}`);
+                    mergedClasses[className] = new DynamicYamlClass();
+                    mergedClasses[className].properties = yamlContent;
+                } else {
+                    mergedClasses[className].properties = this.mergeDeep(
+                        mergedClasses[className].properties,
+                        yamlContent,
+                    );
+                }
+            } catch (error: any) {
+                console.error(`Error parsing YAML file ${file}: ${error.message}`);
+                // Skip this file and continue with others
             }
         });
 

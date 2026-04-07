@@ -20,25 +20,20 @@ import {
 export class CodeGenerator {
     private input!: string;
     private output!: string;
-    private templates!: string;
 
     /** Main method that orchestrates the code generation process */
     generate(opts: GenerateOptions): void {
         this.input = opts.input;
         this.output = opts.output;
-        this.templates = opts.templates;
 
         if (!fs.existsSync(this.input) && !fs.existsSync(path.join(__dirname, this.input))) {
-            console.log('Error: Input file directory does not exist');
-            return;
+            throw new Error('Input file directory does not exist');
         }
         if (!fs.existsSync(opts.templates)) {
-            console.log('Error: Templates directory does not exist');
-            return;
+            throw new Error('Templates directory does not exist');
         }
         if (!fs.existsSync(opts.output)) {
-            console.log('Error: Output directory does not exist');
-            return;
+            throw new Error('Output directory does not exist');
         }
 
         const inputFileDirectoryNormalized: string = fs.existsSync(this.input)
@@ -51,10 +46,21 @@ export class CodeGenerator {
 
         // Register Handlebars helpers
         Handlebars.registerHelper('toLowerCase', (str: string) => str.toLowerCase());
+        Handlebars.registerHelper(
+            'capitalize',
+            (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(),
+        );
         Handlebars.registerHelper('isEq', (str1: any, str2: any) => str1 === str2);
         Handlebars.registerHelper('isArray', (str: string) => str?.toUpperCase() === 'ARRAY');
         Handlebars.registerHelper('isDictionary', (str: string) => str?.toUpperCase().trim().startsWith('DICTIONARY'));
         Handlebars.registerHelper('dictionaryKeyType', (str: string) => str.split('(')[1].split(')')[0]);
+        Handlebars.registerHelper('startsWith', (str: string, prefix: string) => str?.startsWith(prefix));
+        Handlebars.registerHelper('substring', (str: string, start: number, end?: number) => {
+            if (end === -1) {
+                return str?.substring(start, str.length - 1);
+            }
+            return str?.substring(start, end);
+        });
         Handlebars.registerHelper({
             eq: (v1: any, v2: any) => v1 === v2,
             ne: (v1: any, v2: any) => v1 !== v2,
@@ -99,7 +105,7 @@ export class CodeGenerator {
             const name: string = mergedClass.properties.Name;
             const elements: any = mergedClass.properties;
 
-            Object.entries(templates).forEach(([language, templatesPerLanguage]: [string, LanguageTemplates]) => {
+            Object.entries(templates).forEach(([_language, templatesPerLanguage]: [string, LanguageTemplates]) => {
                 if (!templatesPerLanguage.config) {
                     console.log('Config is undefined for templatesPerLanguage:', templatesPerLanguage);
                     return;
@@ -116,7 +122,14 @@ export class CodeGenerator {
                     const jsonData: any = JSON.parse(jsonString);
                     const compiledTemplate: HandlebarsTemplateDelegate = Handlebars.compile(file.content.toString());
 
-                    const result: string = compiledTemplate(jsonData);
+                    let result: string = compiledTemplate(jsonData);
+
+                    // Normalize line endings and remove excessive blank lines for cross-platform consistency
+                    result = result
+                        .replace(/\r\n/g, '\n') // Normalize CRLF to LF
+                        .replace(/\n\n\n+/g, '\n\n'); // Replace multiple consecutive newlines with double newline
+
+                    console.log(`DEBUG: Result preview: ${result.substring(0, 100)}...`);
 
                     const outputDirectory: string = this.determineOutputDirectory(
                         localizedYml.Namespace || '',
@@ -128,8 +141,8 @@ export class CodeGenerator {
                         ? `${file.subType}.${name}.Generated.${templatesPerLanguage.config?.extension}`
                         : `${name}.Generated.${templatesPerLanguage.config?.extension}`;
 
-                    fs.writeFileSync(path.join(outputDirectory, fileName), result);
-                    //console.log(`Writing file to: ${path.join(outputDirectory, fileName)}`);
+                    const fullPath: string = path.join(outputDirectory, fileName);
+                    fs.writeFileSync(fullPath, result);
                 });
             });
         });

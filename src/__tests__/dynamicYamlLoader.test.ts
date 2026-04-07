@@ -26,9 +26,9 @@ describe('DynamicYamlLoader', () => {
             // Arrange
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            mockFs.readdirSync.mockReturnValue(['class1.yml'] as any);
-            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
-            (mockYAML.load as jest.Mock).mockReturnValue({
+            mockFs.statSync.mockReturnValue({ isDirectory: () => false, isFile: () => true } as any);
+            mockPath.extname.mockReturnValue('.yml');
+            (mockYAML.parse as jest.Mock).mockReturnValue({
                 Name: 'TestClass',
                 Type: 'class',
                 Attributes: {},
@@ -49,9 +49,19 @@ describe('DynamicYamlLoader', () => {
             // Arrange
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
+            // Mock statSync to return directory for the input path and file for individual files
+            mockFs.statSync.mockImplementation((filePath) => {
+                const pathStr = String(filePath);
+                if (pathStr === '/test/directory') {
+                    return { isDirectory: () => true, isFile: () => false } as any;
+                } else {
+                    return { isDirectory: () => false, isFile: () => pathStr.endsWith('.yml') } as any;
+                }
+            });
+
             mockFs.readdirSync.mockReturnValue(['class1.yml', 'class2.yml', 'config.txt'] as any);
-            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
-            (mockYAML.load as jest.Mock)
+            mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
+            (mockYAML.parse as jest.Mock)
                 .mockReturnValueOnce({
                     Name: 'Class1',
                     Type: 'class',
@@ -76,9 +86,18 @@ describe('DynamicYamlLoader', () => {
             // Arrange
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            mockFs.readdirSync.mockReturnValue(['class1a.yml', 'class1b.yml'] as any);
-            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
-            (mockYAML.load as jest.Mock)
+            mockFs.statSync.mockImplementation((filePath) => {
+                const pathStr = String(filePath);
+                if (pathStr === '/test/directory') {
+                    return { isDirectory: () => true, isFile: () => false } as any;
+                } else {
+                    return { isDirectory: () => false, isFile: () => pathStr.endsWith('.yml') } as any;
+                }
+            });
+
+            mockFs.readdirSync.mockReturnValue(['class1.yml', 'class1_duplicate.yml'] as any);
+            mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
+            (mockYAML.parse as jest.Mock)
                 .mockReturnValueOnce({
                     Name: 'SharedClass',
                     Attributes: { attr1: 'value1' },
@@ -103,7 +122,17 @@ describe('DynamicYamlLoader', () => {
             // Arrange
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
+            mockFs.statSync.mockImplementation((filePath) => {
+                const pathStr = String(filePath);
+                if (pathStr === '/empty/directory') {
+                    return { isDirectory: () => true, isFile: () => false } as any;
+                } else {
+                    return { isDirectory: () => false, isFile: () => pathStr.endsWith('.yml') } as any;
+                }
+            });
+
             mockFs.readdirSync.mockReturnValue([] as any);
+            mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
 
             // Act
             const result = DynamicYamlLoader.loadAndMergeYamlFiles('/empty/directory');
@@ -195,6 +224,7 @@ describe('DynamicYamlLoader', () => {
                 (path) =>
                     ({
                         isDirectory: () => path.toString() === '/test/simple/subdir',
+                        isFile: () => path.toString() !== '/test/simple/subdir',
                     }) as fs.Stats,
             );
 
@@ -202,8 +232,8 @@ describe('DynamicYamlLoader', () => {
             mockPath.join.mockImplementation((a: string, b: string) => `${a}/${b}`);
 
             // Mock YAML content
-            mockFs.readFileSync.mockReturnValueOnce('className: TestClass1\nproperties: {}');
-            mockYAML.load.mockReturnValueOnce({ className: 'TestClass1', properties: {} } as any);
+            mockFs.readFileSync.mockReturnValueOnce('Name: TestClass1\nproperties: {}');
+            mockYAML.parse.mockReturnValueOnce({ Name: 'TestClass1', properties: {} } as any);
 
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
@@ -220,20 +250,27 @@ describe('DynamicYamlLoader', () => {
         it('should handle non-existent directory', () => {
             // Arrange
             mockFs.existsSync.mockReturnValue(false);
+            mockFs.statSync.mockImplementation(() => {
+                throw new Error('ENOENT: no such file or directory');
+            });
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            // Act
-            const result = DynamicYamlLoader.loadAndMergeYamlFiles('/non/existent');
-
-            // Assert
-            expect(result).toHaveLength(0);
-            expect(consoleSpy).toHaveBeenCalledWith('Found 0 YAML files');
+            // Act & Assert
+            expect(() => DynamicYamlLoader.loadAndMergeYamlFiles('/non/existent')).toThrow('ENOENT');
             consoleSpy.mockRestore();
         });
 
         it('should handle directory read errors gracefully', () => {
             // Arrange
             mockFs.existsSync.mockReturnValue(true);
+            mockFs.statSync.mockImplementation((filePath) => {
+                const pathStr = String(filePath);
+                if (pathStr === '/test/error') {
+                    return { isDirectory: () => true, isFile: () => false } as any;
+                } else {
+                    return { isDirectory: () => false, isFile: () => pathStr.endsWith('.yml') } as any;
+                }
+            });
             mockFs.readdirSync.mockImplementation(() => {
                 throw new Error('Permission denied');
             });
@@ -248,21 +285,22 @@ describe('DynamicYamlLoader', () => {
             // Arrange
             mockFs.existsSync.mockReturnValue(true);
             mockFs.readdirSync.mockReturnValue(['invalid.yml'] as any);
-            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
+            mockFs.statSync.mockReturnValue({ isDirectory: () => false, isFile: () => true } as any);
             mockFs.readFileSync.mockReturnValue('invalid: yaml: content:');
 
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-            // Mock YAML.load to throw an error for this specific test
-            mockYAML.load.mockImplementationOnce(() => {
+            // Mock YAML.parse to throw an error for this specific test
+            mockYAML.parse.mockImplementationOnce(() => {
                 throw new Error('Invalid YAML');
             });
 
             // Act & Assert - The function should handle the error gracefully
-            expect(() => {
-                DynamicYamlLoader.loadAndMergeYamlFiles('/test/invalid');
-            }).toThrow('Invalid YAML');
+            const result = DynamicYamlLoader.loadAndMergeYamlFiles('/test/invalid');
+
+            // Should return empty array when files fail to parse
+            expect(result).toHaveLength(0);
 
             // Restore console spies
             consoleSpy.mockRestore();
@@ -272,9 +310,22 @@ describe('DynamicYamlLoader', () => {
         it('should handle files with various YAML extensions', () => {
             // Arrange
             mockFs.existsSync.mockReturnValue(true);
+
+            mockFs.statSync.mockImplementation((filePath) => {
+                const pathStr = String(filePath);
+                if (pathStr === '/test/mixed') {
+                    return { isDirectory: () => true, isFile: () => false } as any;
+                } else {
+                    return {
+                        isDirectory: () => false,
+                        isFile: () => pathStr.endsWith('.yml') || pathStr.endsWith('.yaml'),
+                    } as any;
+                }
+            });
+
             mockFs.readdirSync.mockReturnValue(['file1.yml', 'file2.yaml', 'file3.txt'] as any);
-            mockFs.statSync.mockReturnValue({ isDirectory: () => false } as any);
-            mockYAML.load.mockReturnValue({ Name: 'TestClass', Type: 'class' } as any);
+            mockPath.join.mockImplementation((dir, file) => `${dir}/${file}`);
+            mockYAML.parse.mockReturnValue({ Name: 'TestClass', Type: 'class' } as any);
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
             // Act
