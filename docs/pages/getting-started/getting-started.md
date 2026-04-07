@@ -309,3 +309,189 @@ public partial class Vehicle
 ```
 
 Next up, we will configure an endpoint and services
+
+## Adding Entity Framework Core Support
+
+Now that we have our POCO models from `<<class>>`, we can use the `<<storage>>` annotation to generate EF Core entity models — the same structure but enriched with persistence annotations like `[Key]`, `[Column]`, `[ForeignKey]`, and `virtual` navigation properties.
+
+### 7. Mark entities as storage models in the Mermaid diagram
+
+Update `docs/detailed-design/fleet-management.md` to use `<<storage>>` instead of `<<class>>` for entities that need persistence:
+
+```mermaid
+classDiagram
+namespace Models {
+    class Vehicle {
+        <<storage>>
+        +int Id
+        +String Make
+        +String Model
+        +int Year
+        +String Status
+    }
+
+    class Driver {
+        <<storage>>
+        +int Id
+        +String Name
+        +String LicenseNumber
+    }
+}
+```
+
+Run the transform command again:
+
+```cmd
+mermaid-codegen transform -i .\docs\detailed-design -o definitions
+```
+
+The generated YAML (e.g. `definitions/Models/Vehicle.Generated.yml`) will have `Type: storage` instead of `Type: class`.
+
+### 8. Generate the EF Core entity models
+
+```cmd
+mermaid-codegen generate -i definitions -o src -t blue-prints\C#
+```
+
+This produces `src/Models/Vehicle.Generated.cs` using `storage.csharp.hbs`, which includes all EF Core usings automatically:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace Models;
+
+public partial class Vehicle
+{
+    public int Id { get; set; }
+    public string Make { get; set; }
+    public string Model { get; set; }
+    public int Year { get; set; }
+    public string Status { get; set; }
+}
+```
+
+### 9. Add EF Core annotations to the Vehicle entity
+
+Copy `definitions/Models/Vehicle.Generated.yml` to `definitions/Models/Vehicle.yml` and add EF Core-specific annotations:
+
+```yml
+Name: Vehicle
+Usings:
+  - System.ComponentModel.DataAnnotations
+  - System.ComponentModel.DataAnnotations.Schema
+Type: storage
+Annotations:
+  Table:
+    Name: vehicles
+    Schema: fleet
+Attributes:
+  Id:
+    Annotations:
+      Key: true
+      DatabaseGenerated: Identity
+  Make:
+    Annotations:
+      Required: true
+      Column:
+        Name: make
+      MaxLength:
+        Length: 100
+        ErrorMessage: "Make must be 100 characters or less"
+  Year:
+    Annotations:
+      Range:
+        Min: 1900
+        Max: 2100
+        ErrorMessage: "Year must be between 1900 and 2100"
+```
+
+After regenerating, `Vehicle.Generated.cs` will include the EF Core data annotations:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace Models;
+
+[Table("vehicles", Schema = "fleet")]
+public partial class Vehicle
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("make")]
+    [MaxLength(100, ErrorMessage="Make must be 100 characters or less")]
+    public string Make { get; set; }
+
+    [Range(1900,2100, ErrorMessage = "Year must be between 1900 and 2100")]
+    public int Year { get; set; }
+
+    public string Status { get; set; }
+
+    public string Model { get; set; }
+}
+```
+
+### 10. Write a DbContext referencing the generated entities
+
+The generated entity models are used as-is in a hand-written `DbContext`. Add it to your project:
+
+```csharp
+// src/Data/FleetDbContext.cs
+using Microsoft.EntityFrameworkCore;
+
+public class FleetDbContext : DbContext
+{
+    public FleetDbContext(DbContextOptions<FleetDbContext> options) : base(options) { }
+
+    public DbSet<Vehicle> Vehicles { get; set; } = null!;
+    public DbSet<Driver> Drivers { get; set; } = null!;
+}
+```
+
+Install EF Core packages and register the context in `Program.cs`:
+
+```cmd
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+dotnet add package Microsoft.EntityFrameworkCore.Tools
+```
+
+```csharp
+builder.Services.AddDbContext<FleetDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+```
+
+Add the connection string to `appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=FleetManagement;Trusted_Connection=True;"
+  }
+}
+```
+
+### 11. Run migrations
+
+```cmd
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+### 12. Build and run
+
+```cmd
+dotnet build fleet-management.csproj
+dotnet run fleet-management.csproj
+```
+
+The fleet management API is now backed by Entity Framework Core. For more details on all supported EF Core annotations, see the [Storage & Entity Framework](./storage-and-entity-framework) reference page.
