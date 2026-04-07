@@ -314,6 +314,23 @@ describe('storage.csharp.hbs — EF Core entity model template', () => {
         expect(result).toContain('[MaxLength(100, ErrorMessage="Too long")]');
     });
 
+    it('should render [MaxLength] with only length when ErrorMessage is absent', () => {
+        const result = template({
+            Name: 'Vehicle',
+            Namespace: 'Company.VTC.Models',
+            Attributes: {
+                Make: {
+                    Type: 'string',
+                    Scope: 'public',
+                    Annotations: { MaxLength: { Length: 50 } },
+                },
+            },
+        });
+
+        expect(result).toContain('[MaxLength(50)]');
+        expect(result).not.toContain('ErrorMessage=""');
+    });
+
     it('should render [MinLength] with length and error message', () => {
         const result = template({
             Name: 'Vehicle',
@@ -328,6 +345,23 @@ describe('storage.csharp.hbs — EF Core entity model template', () => {
         });
 
         expect(result).toContain('[MinLength(2, ErrorMessage="Too short")]');
+    });
+
+    it('should render [MinLength] with only length when ErrorMessage is absent', () => {
+        const result = template({
+            Name: 'Vehicle',
+            Namespace: 'Company.VTC.Models',
+            Attributes: {
+                Make: {
+                    Type: 'string',
+                    Scope: 'public',
+                    Annotations: { MinLength: { Length: 3 } },
+                },
+            },
+        });
+
+        expect(result).toContain('[MinLength(3)]');
+        expect(result).not.toContain('ErrorMessage=""');
     });
 
     it('should render [Range] with min, max, and error message', () => {

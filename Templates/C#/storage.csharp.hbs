@@ -36,10 +36,10 @@ public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance
     {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
     {{/if}}
     {{#if this.Annotations.MaxLength}}
-    [MaxLength({{this.Annotations.MaxLength.Length}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}")]
+    [MaxLength({{this.Annotations.MaxLength.Length}}{{#if this.Annotations.MaxLength.ErrorMessage}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}"{{/if}})]
     {{/if}}
     {{#if this.Annotations.MinLength}}
-    [MinLength({{this.Annotations.MinLength.Length}}, ErrorMessage="{{this.Annotations.MinLength.ErrorMessage}}")]
+    [MinLength({{this.Annotations.MinLength.Length}}{{#if this.Annotations.MinLength.ErrorMessage}}, ErrorMessage="{{this.Annotations.MinLength.ErrorMessage}}"{{/if}})]
     {{/if}}
     {{#if this.Annotations.Range}}
     [Range({{this.Annotations.Range.Min}},{{this.Annotations.Range.Max}}{{#if this.Annotations.Range.ErrorMessage}}, ErrorMessage = "{{this.Annotations.Range.ErrorMessage}}"{{/if}})]
