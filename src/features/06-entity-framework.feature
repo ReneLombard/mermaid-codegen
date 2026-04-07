@@ -11,6 +11,7 @@ Background: Entity Framework code generation environment
     Test scope: Storage entity generation, EF model annotations, navigation properties
 
         Given Eve has prepared a clean test workspace
+            And the file watching service is available
             And YAML files containing class definitions are available
             And the code generation engine is properly configured
 
@@ -46,7 +47,6 @@ Background: Entity Framework code generation environment
                 namespace Company.VTC.Models;
 
                 public partial class Vehicle
-
                 {
 
                     public int Id { get; set; }
@@ -95,7 +95,6 @@ Background: Entity Framework code generation environment
                 namespace Company.VTC.Models;
 
                 public partial class Vehicle
-
                 {
 
                     [Key]
@@ -150,7 +149,6 @@ Background: Entity Framework code generation environment
                 namespace Company.VTC.Models;
 
                 public partial class Driver
-
                 {
 
                     [Key]
@@ -201,9 +199,7 @@ Background: Entity Framework code generation environment
                 namespace Company.VTC.Models;
 
                 [Table("vehicles", Schema = "fleet")]
-
                 public partial class Vehicle
-
                 {
 
                     [Key]
@@ -250,7 +246,6 @@ Background: Entity Framework code generation environment
                 namespace Company.VTC.Models;
 
                 public partial class Vehicle
-
                 {
 
                     [Key]
@@ -289,8 +284,7 @@ Background: Entity Framework code generation environment
 
                 namespace Company.VTC.Models;
 
-                public partial class Vehicle
-
+                public partial class Vehicle 
                 {
 
                     public int Id { get; set; }
@@ -300,10 +294,11 @@ Background: Entity Framework code generation environment
                 }
                 """
 
-    Scenario: End-to-end fleet management workflow with EF Core storage entities
-        Complete pipeline from Mermaid diagram with <<storage>> to generated EF entity files
+    Scenario: End-to-end: Mermaid diagram transforms to EF entities and Custom.yml adds Required and Range constraints
+        Full pipeline: <<storage>> Mermaid diagram -> transform -> Custom.yml with validation annotations -> generate -> compile
+        Verifies that annotations defined in Custom.yml are merged with the Generated.yml and rendered in the final C# entity
 
-            Given Eve has created a file "fleet-ef.md" with content:
+            Given Eve has created a file "fleet-vehicles.md" with content:
             """
             ```mermaid
             classDiagram
@@ -313,6 +308,76 @@ Background: Entity Framework code generation environment
                     <<storage>>
                     +String Make
                     +String Model
+                    +Number Year
+                    +String Status
+                }
+            }
+            ```
+            """
+            When Eve runs "mermaid-codegen transform -i fleet-vehicles.md -o output/yml"
+            Then a file "output/yml/Company/VTC/Models/Vehicle.Generated.yml" should be created
+            When Eve has created a file "output/yml/Company/VTC/Models/Vehicle.Custom.yml" with content:
+            """
+            Name: Vehicle
+            Namespace: Company.VTC.Models
+            Type: storage
+            Attributes:
+              Make:
+                Annotations:
+                  Required: true
+                  MaxLength:
+                    Length: 100
+                    ErrorMessage: "Make cannot exceed 100 characters"
+              Year:
+                Annotations:
+                  Range:
+                    Min: 1900
+                    Max: 2100
+                    ErrorMessage: "Year must be between 1900 and 2100"
+            """
+            When Eve runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
+            Then a file "output/code/Models/Vehicle.Generated.cs" should be created
+                And the file "output/code/Models/Vehicle.Generated.cs" should contain:
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.ComponentModel.DataAnnotations;
+                using System.ComponentModel.DataAnnotations.Schema;
+                using Microsoft.EntityFrameworkCore;
+
+                namespace Company.VTC.Models;
+
+                public partial class Vehicle
+                {
+
+                    [Required]
+                    [MaxLength(100, ErrorMessage="Make cannot exceed 100 characters")]
+                    public string Make { get; set; }
+
+                    public string Model { get; set; }
+
+                    [Range(1900,2100, ErrorMessage = "Year must be between 1900 and 2100")]
+                    public int Year { get; set; }
+
+                    public string Status { get; set; }
+
+                }
+                """
+                And Eve can compile the generated code with "dotnet build output/code" successfully
+
+    Scenario: End-to-end: Mermaid diagram transforms to EF entities and Custom.yml adds ForeignKey and Column annotations
+        Full pipeline: <<storage>> Mermaid diagram -> transform -> Custom.yml with FK/column annotations -> generate -> compile
+        Verifies that FK and column annotations defined in Custom.yml are merged and rendered in the Driver entity
+
+            Given Eve has created a file "fleet-drivers.md" with content:
+            """
+            ```mermaid
+            classDiagram
+
+            namespace Company.VTC.Models {
+                class Vehicle {
+                    <<storage>>
+                    +String Make
                     +Number Year
                 }
 
@@ -324,9 +389,56 @@ Background: Entity Framework code generation environment
             }
             ```
             """
-            When Eve runs "mermaid-codegen transform -i fleet-ef.md -o output/yml"
-            And Eve runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
+            When Eve runs "mermaid-codegen transform -i fleet-drivers.md -o output/yml"
             Then a file "output/yml/Company/VTC/Models/Vehicle.Generated.yml" should be created
                 And a file "output/yml/Company/VTC/Models/Driver.Generated.yml" should be created
-                And a file "output/code/Models/Vehicle.Generated.cs" should be created
+            When Eve has created a file "output/yml/Company/VTC/Models/Driver.Custom.yml" with content:
+            """
+            Name: Driver
+            Namespace: Company.VTC.Models
+            Type: storage
+            Attributes:
+              AssignedVehicleId:
+                Type: int
+                Scope: Public
+                Annotations:
+                  ForeignKey:
+                    Name: AssignedVehicle
+              LicenseNumber:
+                Annotations:
+                  Column:
+                    Name: license_number
+                  Required: true
+                  MaxLength:
+                    Length: 50
+                    ErrorMessage: "License number cannot exceed 50 characters"
+            """
+            When Eve runs "mermaid-codegen generate -i output/yml -o output/code -t Templates/C#"
+            Then a file "output/code/Models/Vehicle.Generated.cs" should be created
                 And a file "output/code/Models/Driver.Generated.cs" should be created
+                And the file "output/code/Models/Driver.Generated.cs" should contain:
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.ComponentModel.DataAnnotations;
+                using System.ComponentModel.DataAnnotations.Schema;
+                using Microsoft.EntityFrameworkCore;
+
+                namespace Company.VTC.Models;
+
+                public partial class Driver
+                {
+
+                    public string Name { get; set; }
+
+                    [Column("license_number")]
+                    [Required]
+                    [MaxLength(50, ErrorMessage="License number cannot exceed 50 characters")]
+                    public string LicenseNumber { get; set; }
+
+                    [ForeignKey("AssignedVehicle")]
+                    public int AssignedVehicleId { get; set; }
+
+                }
+                """
+                And Eve can compile the generated code with "dotnet build output/code" successfully

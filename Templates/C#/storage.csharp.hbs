@@ -12,7 +12,7 @@ using {{this}};
 {{{xmlSummary this.Comment ""}}}
 {{#if this.Annotations.Table}}[Table("{{this.Annotations.Table.Name}}"{{#if this.Annotations.Table.Schema}}, Schema = "{{this.Annotations.Table.Schema}}"{{/if}})]
 {{/if}}
-public partial class {{Name}} {{#if this.Inheritance}}: {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+public partial class {{Name}}{{#if this.Inheritance}} : {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
 {
 
 {{#each Attributes}}
