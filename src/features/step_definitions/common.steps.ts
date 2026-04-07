@@ -216,40 +216,6 @@ Given(
     },
 );
 
-// Template setup
-Given(
-    'the {word} templates exist in {string} directory',
-    async function (this: CustomWorld, language: string, directory: string) {
-        const templateDir = path.join(this.workspaceDir, directory);
-        await fs.promises.mkdir(templateDir, { recursive: true });
-
-        if (language.toLowerCase() === 'c#') {
-            const configContent = `{
-    "language": "CSharp",
-    "extension": "cs",
-    "mappings": {
-        "Scope": { "Public": "public", "Private": "private", "Protected": "protected" },
-        "Type": { "Number": "int", "String": "string", "Boolean": "bool" }
-    }
-}`;
-            await fs.promises.writeFile(path.join(templateDir, 'config.json'), configContent, 'utf-8');
-
-            const classTemplate = `namespace {{#if Namespace}}{{Namespace}}{{else}}DefaultNamespace{{/if}}
-{
-    public partial class {{Name}}
-    {
-{{#each Attributes}}
-        public {{#if this.Type}}{{this.Type}}{{else}}string{{/if}} {{this.Name}} { get; set; }
-{{/each}}
-    }
-}`;
-            await fs.promises.writeFile(path.join(templateDir, 'class.csharp.hbs'), classTemplate, 'utf-8');
-        }
-
-        this.attach('Template exists: ' + directory);
-    },
-);
-
 // Command execution
 When('{word} runs {string}', async function (this: CustomWorld, persona: string, command: string) {
     if (command.includes('generate')) {
@@ -336,37 +302,6 @@ Then('the directory {string} should not exist', async function (this: CustomWorl
 });
 
 // Content verification
-Then(
-    'the file {string} should contain {string}',
-    async function (this: CustomWorld, filePath: string, expectedContent: string) {
-        const fullPath = path.join(this.workspaceDir, filePath);
-        const exists = await this.fileExists(fullPath);
-        assert.strictEqual(exists, true, 'File should exist: ' + fullPath);
-
-        const content = await fs.promises.readFile(fullPath, 'utf-8');
-        assert.strictEqual(
-            content.includes(expectedContent),
-            true,
-            'File should contain "' + expectedContent + '", but got: ' + content,
-        );
-    },
-);
-
-Then('the file should contain {string}', async function (this: CustomWorld, expectedContent: string) {
-    const targetFile = this.currentFile || this.generatedFiles[this.generatedFiles.length - 1];
-
-    if (await this.fileExists(targetFile)) {
-        const content = await fs.promises.readFile(targetFile, 'utf-8');
-        assert.strictEqual(
-            content.includes(expectedContent),
-            true,
-            'File should contain "' + expectedContent + '", but got: ' + content,
-        );
-    } else {
-        assert.fail('Cannot verify content - file not found: ' + targetFile);
-    }
-});
-
 // Step definitions for docstring content verification
 Then('the file should contain:', async function (this: CustomWorld, docString: string) {
     const targetFile = this.currentFile || this.generatedFiles[this.generatedFiles.length - 1];
@@ -439,72 +374,6 @@ Then('the YAML file {string} should contain:', async function (this: CustomWorld
             '\n\nActual:\n' +
             normalizedContent,
     );
-});
-
-Given(
-    'the initial {string} content is:',
-    async function (this: CustomWorld, filePath: string, expectedContent: string) {
-        const fullPath = path.join(this.workspaceDir, filePath);
-
-        // Store the initial content for later comparison
-        if (!this.testData.initialContent) {
-            this.testData.initialContent = {};
-        }
-        this.testData.initialContent[filePath] = expectedContent.trim();
-
-        // Verify file exists and matches expected initial content
-        const exists = await this.fileExists(fullPath);
-        if (exists) {
-            const content = await fs.promises.readFile(fullPath, 'utf-8').then((c) => c.trim());
-            assert.strictEqual(
-                content,
-                expectedContent.trim(),
-                'Initial file content does not match.\nExpected:\n' + expectedContent + '\n\nActual:\n' + content,
-            );
-        }
-
-        this.attach(`Initial content recorded for ${filePath}`);
-    },
-);
-
-Then('the file {string} should remain:', async function (this: CustomWorld, filePath: string, expectedContent: string) {
-    const fullPath = path.join(this.workspaceDir, filePath);
-    const exists = await this.fileExists(fullPath);
-    assert.strictEqual(exists, true, 'File should exist: ' + fullPath);
-
-    const content = await fs.promises.readFile(fullPath, 'utf-8').then((c) => c.trim());
-    const expectedTrimmed = expectedContent.trim();
-
-    assert.strictEqual(
-        content,
-        expectedTrimmed,
-        'File content should have remained unchanged.\nExpected:\n' + expectedTrimmed + '\n\nActual:\n' + content,
-    );
-
-    this.attach(`File ${filePath} content verified - remains unchanged`);
-});
-
-Then('the initial {string} content is:', async function (this: CustomWorld, filePath: string, expectedContent: string) {
-    const fullPath = path.join(this.workspaceDir, filePath);
-
-    // Store the initial content for later comparison
-    if (!this.testData.initialContent) {
-        this.testData.initialContent = {};
-    }
-    this.testData.initialContent[filePath] = expectedContent.trim();
-
-    // Verify file exists and matches expected initial content
-    const exists = await this.fileExists(fullPath);
-    if (exists) {
-        const content = await fs.promises.readFile(fullPath, 'utf-8').then((c) => c.trim());
-        assert.strictEqual(
-            content,
-            expectedContent.trim(),
-            'Initial file content does not match.\nExpected:\n' + expectedContent + '\n\nActual:\n' + content,
-        );
-    }
-
-    this.attach(`Initial content recorded for ${filePath}`);
 });
 
 // Exit code verification
@@ -584,27 +453,6 @@ Then('the generated file should contain {string}', async function (this: CustomW
     }
 });
 
-Then(
-    '{word} expects the generated file {string} to contain:',
-    async function (this: CustomWorld, persona: string, filePath: string, expectedContent: string) {
-        const fullPath = path.join(this.workspaceDir, filePath);
-        const exists = await this.fileExists(fullPath);
-        assert.strictEqual(exists, true, 'Generated file should exist: ' + fullPath);
-
-        const content = await fs.promises.readFile(fullPath, 'utf-8');
-        assert.strictEqual(
-            content.includes(expectedContent.trim()),
-            true,
-            'Generated file should contain expected content.\nExpected to find:\n' +
-                expectedContent.trim() +
-                '\n\nBut got:\n' +
-                content,
-        );
-
-        this.attach(persona + ' verified generated file content: ' + filePath);
-    },
-);
-
 // Error handling
 Then('no YAML files should be created', async function (this: CustomWorld) {
     const outputDir = path.join(this.workspaceDir, 'output');
@@ -641,11 +489,6 @@ Then('no code files should be created', async function (this: CustomWorld) {
     this.attach('Verified no code files created');
 });
 
-Given('{word} starts the file watching service', async function (this: CustomWorld, persona: string) {
-    // File watching service is available - no additional setup needed for tests
-    this.attach(persona + ' file watching service is ready');
-});
-
 Given('{word} has prepared initial Mermaid and YAML files', async function (this: CustomWorld, persona: string) {
     this.attach(persona + ' - initial Mermaid and YAML files are set up per-scenario');
 });
@@ -656,65 +499,6 @@ Given('the watch process is running', function (this: CustomWorld) {
     } else {
         this.attach('Watch process status: not running or exited');
     }
-});
-
-Then('a file {string} should be updated within 5 seconds', async function (this: CustomWorld, filename: string) {
-    const filePath = path.join(this.workspaceDir, filename);
-
-    // Ensure directory exists
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-
-    // Record initial modification time if file exists
-    let initialMTime: Date | null = null;
-    try {
-        const stats = await fs.promises.stat(filePath);
-        initialMTime = stats.mtime;
-        this.attach(`File exists, initial mtime: ${initialMTime.toISOString()}`);
-    } catch (error) {
-        this.attach(`File doesn't exist yet: ${filePath}`);
-    }
-
-    // Wait up to 12 seconds for file to be updated (extended for file watcher delays)
-    let attempts = 0;
-    const maxAttempts = 24; // 12 seconds with 500ms intervals
-
-    this.attach(`Waiting for file: ${filePath}`);
-
-    while (attempts < maxAttempts) {
-        try {
-            const stats = await fs.promises.stat(filePath);
-            if (initialMTime === null) {
-                // File was created
-                this.attach('File created: ' + filename);
-                return;
-            } else if (stats.mtime > initialMTime) {
-                // File was modified
-                this.attach(`File modified: ${filename}, new mtime: ${stats.mtime.toISOString()}`);
-                return;
-            }
-        } catch (error) {
-            // File doesn't exist yet
-        }
-
-        this.attach(`Attempt ${attempts + 1}/${maxAttempts}: File not updated yet`);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        attempts++;
-    }
-
-    // List what files do exist for debugging
-    try {
-        const parentDir = path.dirname(filePath);
-        if (await this.fileExists(parentDir)) {
-            const files = await fs.promises.readdir(parentDir, { recursive: true });
-            this.attach(`Files in ${parentDir}: ${JSON.stringify(files)}`);
-        } else {
-            this.attach(`Parent directory does not exist: ${parentDir}`);
-        }
-    } catch (err) {
-        this.attach(`Error checking directory: ${err}`);
-    }
-
-    throw new Error('File was not updated within 12 seconds: ' + filename);
 });
 
 Then(
@@ -809,31 +593,6 @@ Then('the controller should reference the Vehicle model correctly', async functi
     );
     this.attach('Controller references Vehicle model correctly');
 });
-
-Given(
-    '{word} has created a config file {string} with template settings',
-    async function (this: CustomWorld, persona: string, filename: string) {
-        const filePath = path.join(this.workspaceDir, filename);
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-
-        const configContent = JSON.stringify(
-            {
-                language: 'CSharp',
-                extension: 'cs',
-                namespace: { prefixToIgnore: 'Company.VTC' },
-                mappings: {
-                    Scope: { Public: 'public', Private: 'private', Protected: 'protected' },
-                    Type: { Number: 'int', String: 'string', Boolean: 'bool' },
-                },
-            },
-            null,
-            4,
-        );
-
-        await fs.promises.writeFile(filePath, configContent, 'utf-8');
-        this.attach(persona + ' created config file: ' + filename);
-    },
-);
 
 Then(
     'the output structure should match the configuration in {string}',
@@ -1072,31 +831,6 @@ Given(
 );
 
 Given(
-    '{word} has created a file {string} with a class definition',
-    async function (this: CustomWorld, persona: string, filename: string) {
-        const filePath = path.join(this.workspaceDir, filename);
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const content = '```mermaid\nclassDiagram\nclass TempClass {\n    +String Property\n}\n```';
-        await fs.promises.writeFile(filePath, content, 'utf-8');
-        this.generatedFiles.push(filePath);
-        this.attach(persona + ' created class definition: ' + filename);
-    },
-);
-
-Given(
-    '{word} has created a file {string} with invalid mermaid syntax',
-    async function (this: CustomWorld, persona: string, filename: string) {
-        const filePath = path.join(this.workspaceDir, filename);
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const invalidContent =
-            '```mermaid\nclassDiagram\nclass Vehicle {\n    +String Make\n    // missing closing brace\n```';
-        await fs.promises.writeFile(filePath, invalidContent, 'utf-8');
-        this.generatedFiles.push(filePath);
-        this.attach(persona + ' created invalid mermaid file: ' + filename);
-    },
-);
-
-Given(
     '{word} has started {string} in the background',
     async function (this: CustomWorld, persona: string, command: string) {
         // Initialize file hash storage
@@ -1183,32 +917,6 @@ Given(
     },
 );
 
-Given(
-    '{word} has started {string} as process with PID',
-    async function (this: CustomWorld, persona: string, command: string) {
-        const args = command.split(' ');
-        const cmd = args[0] === 'mermaid-codegen' ? 'node' : args[0];
-        const srcDir = path.resolve(__dirname, '..', '..', '..');
-        const cmdArgs =
-            args[0] === 'mermaid-codegen' ? [path.join(srcDir, 'dist', 'index.js'), ...args.slice(1)] : args.slice(1);
-
-        const { spawn } = require('child_process');
-        this.watchProcess = spawn(cmd, cmdArgs, {
-            cwd: this.workspaceDir,
-            stdio: ['pipe', 'pipe', 'pipe'],
-            detached: false,
-        });
-
-        // Store the PID for later reference
-        this.testData.watchPid = this.watchProcess?.pid;
-
-        // Give the process a moment to start
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        this.attach(persona + ' started process with PID: ' + (this.watchProcess?.pid || 'unknown') + ' - ' + command);
-    },
-);
-
 Given('the corresponding output files exist', async function (this: CustomWorld) {
     // Wait for the watch process to generate initial output files
     const timeoutMs = 15000;
@@ -1275,41 +983,6 @@ When(
 );
 
 When(
-    '{word} modifies both {string} and {string} simultaneously',
-    async function (this: CustomWorld, persona: string, file1: string, file2: string) {
-        // Modify the first file (vehicle.md)
-        const filePath1 = path.join(this.workspaceDir, file1);
-        const existingContent1 = await fs.promises.readFile(filePath1, 'utf-8');
-        const modifiedContent1 = existingContent1.replace(/(\+Number Year\s*\n)/, '$1    +String Color\n');
-        await fs.promises.writeFile(filePath1, modifiedContent1, 'utf-8');
-
-        // Modify the second file (driver.md)
-        const filePath2 = path.join(this.workspaceDir, file2);
-        const existingContent2 = await fs.promises.readFile(filePath2, 'utf-8');
-        const modifiedContent2 = existingContent2.replace(/(\+String LicenseNumber\s*\n)/, '$1    +String Email\n');
-        await fs.promises.writeFile(filePath2, modifiedContent2, 'utf-8');
-
-        // Force file system sync for both files
-        const fd1 = await fs.promises.open(filePath1, 'r+');
-        await fd1.sync();
-        await fd1.close();
-
-        const fd2 = await fs.promises.open(filePath2, 'r+');
-        await fd2.sync();
-        await fd2.close();
-
-        // Update timestamps to ensure change detection
-        const stats1 = await fs.promises.stat(filePath1);
-        await fs.promises.utimes(filePath1, stats1.atime, new Date());
-
-        const stats2 = await fs.promises.stat(filePath2);
-        await fs.promises.utimes(filePath2, stats2.atime, new Date());
-
-        this.attach(persona + ' modified both files simultaneously: ' + file1 + ', ' + file2);
-    },
-);
-
-When(
     '{word} creates a new file {string} with a {word} class definition:',
     async function (this: CustomWorld, persona: string, filename: string, className: string, docString: string) {
         const filePath = path.join(this.workspaceDir, filename);
@@ -1331,42 +1004,6 @@ When('{word} deletes the file {string}', async function (this: CustomWorld, pers
     }
 });
 
-When('{word} sends SIGTERM signal to the watch process', async function (this: CustomWorld, persona: string) {
-    if (!this.watchProcess) {
-        throw new Error('No watch process found to send SIGTERM to');
-    }
-
-    try {
-        // Check if process is still running
-        if (this.watchProcess.exitCode !== null) {
-            this.attach(persona + ' - Process has already exited with code: ' + this.watchProcess.exitCode);
-            return;
-        }
-
-        // Send SIGTERM signal to the process
-        const pid = this.watchProcess.pid;
-        if (pid) {
-            process.kill(pid, 'SIGTERM');
-            this.attach(persona + ' sent SIGTERM signal to process PID: ' + pid);
-
-            // Give process a moment to handle the signal
-            await new Promise((resolve) => setTimeout(resolve, 500));
-        } else {
-            throw new Error('Could not determine process PID');
-        }
-    } catch (error) {
-        const errorMsg = (error as Error).message;
-
-        // If ESRCH (no such process), the process already exited
-        if (errorMsg.includes('ESRCH')) {
-            this.attach(persona + ' - Process does not exist (already exited)');
-        } else {
-            this.attach('Error sending SIGTERM: ' + errorMsg);
-            throw error;
-        }
-    }
-});
-
 Then(
     'the timestamp of {string} should be newer than {string}',
     async function (this: CustomWorld, file1: string, file2: string) {
@@ -1384,47 +1021,6 @@ Then(
     },
 );
 
-Then('a file {string} should be updated', async function (this: CustomWorld, filename: string) {
-    const filePath = path.join(this.workspaceDir, filename);
-    const isCodeFile = filename.endsWith('.cs');
-
-    // Check if file exists
-    if (!(await this.fileExists(filePath))) {
-        throw new Error(`File does not exist: ${filename}`);
-    }
-
-    // For .cs files, we should verify the content has actually changed
-    if (isCodeFile) {
-        const currentHash = calculateFileHash(filePath);
-
-        // Get the stored initial hash (if any) from the world context
-        if (!this.testData.fileHashes) {
-            this.testData.fileHashes = {};
-        }
-
-        const storedData = this.testData.fileHashes[filePath];
-        if (storedData && storedData.initialHash) {
-            if (currentHash === storedData.initialHash) {
-                throw new Error(`File ${filename} exists but content has not changed (hash unchanged)`);
-            }
-            this.attach(
-                `File content verified as changed: ${filename} (hash: ${storedData.initialHash} -> ${currentHash})`,
-            );
-        } else {
-            // If no stored hash, just verify the file exists and has content
-            const stats = await fs.promises.stat(filePath);
-            if (stats.size === 0) {
-                throw new Error(`File ${filename} exists but is empty`);
-            }
-            this.attach(`File ${filename} exists with content (${stats.size} bytes)`);
-        }
-    } else {
-        // For non-.cs files, just verify existence
-        const stats = await fs.promises.stat(filePath);
-        this.attach(`File ${filename} exists (${stats.size} bytes, mtime: ${stats.mtime.toISOString()})`);
-    }
-});
-
 Then('the file {string} should be removed', async function (this: CustomWorld, filename: string) {
     const filePath = path.join(this.workspaceDir, filename);
     const timeoutMs = 12000;
@@ -1439,61 +1035,6 @@ Then('the file {string} should be removed', async function (this: CustomWorld, f
     }
 
     throw new Error(`File was not removed within ${timeoutMs / 1000} seconds: ${filename}`);
-});
-
-Then(
-    'the watch process should exit with code {int} within {int} seconds',
-    async function (this: CustomWorld, expectedExitCode: number, seconds: number) {
-        if (!this.watchProcess) {
-            throw new Error('No watch process found');
-        }
-
-        const timeoutMs = seconds * 1000;
-        const startTime = Date.now();
-
-        // Poll for process completion
-        const pollInterval = 100; // Check every 100ms
-        while (Date.now() - startTime < timeoutMs) {
-            if (this.watchProcess.exitCode !== null) {
-                // Accept exit code 0 for graceful shutdown, OR any exit code as long as the process terminated
-                // (On Windows, signal handling may result in different exit codes)
-                if (expectedExitCode === 0) {
-                    // For graceful shutdown tests, accept the process terminating (exit code is not null)
-                    // even if it's not exactly 0, as long as it terminated within the timeout
-                    this.attach(
-                        `Watch process terminated with code ${this.watchProcess.exitCode} within ${seconds} seconds (accepted for graceful shutdown)`,
-                    );
-                    return;
-                } else if (this.watchProcess.exitCode === expectedExitCode) {
-                    this.attach(`Watch process exited with code ${expectedExitCode} within ${seconds} seconds`);
-                    return;
-                } else {
-                    throw new Error(
-                        `Watch process exited with code ${this.watchProcess.exitCode}, expected ${expectedExitCode}`,
-                    );
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, pollInterval));
-        }
-
-        throw new Error(`Watch process did not exit with code ${expectedExitCode} within ${seconds} seconds`);
-    },
-);
-
-Then('no background processes should remain running', function (this: CustomWorld) {
-    if (this.watchProcess && !this.watchProcess.killed && this.watchProcess.exitCode === null) {
-        throw new Error('Background process is still running when it should have been terminated');
-    }
-    this.attach('Verified no background processes remain running');
-});
-
-Then('all file handles should be properly released', function (this: CustomWorld) {
-    // If the watch process has exited cleanly, file handles should be released
-    if (!this.watchProcess || this.watchProcess.killed || this.watchProcess.exitCode !== null) {
-        this.attach('Watch process has exited; file handles should be released');
-    } else {
-        this.attach('Watch process still running (file handle state unknown)');
-    }
 });
 
 Then('the workspace should remain clean', async function (this: CustomWorld) {
@@ -1513,30 +1054,6 @@ Then('the workspace should remain clean', async function (this: CustomWorld) {
 });
 
 // Error handling for invalid content scenarios
-When(
-    '{word} modifies {string} with invalid mermaid syntax:',
-    async function (this: CustomWorld, persona: string, filename: string, docString: string) {
-        const filePath = path.join(this.workspaceDir, filename);
-        await fs.promises.writeFile(filePath, docString, 'utf-8');
-        this.attach(persona + ' modified file with invalid mermaid syntax: ' + filename);
-
-        // Give the watcher a moment to process the invalid file
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-    },
-);
-
-When(
-    '{word} modifies {string} with invalid YAML syntax:',
-    async function (this: CustomWorld, persona: string, filename: string, docString: string) {
-        const filePath = path.join(this.workspaceDir, filename);
-        await fs.promises.writeFile(filePath, docString, 'utf-8');
-        this.attach(persona + ' modified file with invalid YAML syntax: ' + filename);
-
-        // Give the watcher a moment to process the invalid file
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-    },
-);
-
 Then('an error should be logged to the console output', function (this: CustomWorld) {
     const stderr = this.testData.watchStderr || '';
     const stdout = this.testData.watchStdout || '';

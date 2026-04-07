@@ -48,7 +48,7 @@ export class ListLanguagesService {
                     console.log(language);
                 });
             }
-        } catch (error) {
+        } catch {
             console.log('Error reading templates directory. Available languages: C#, Documentation');
         }
 

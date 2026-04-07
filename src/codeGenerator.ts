@@ -19,13 +19,11 @@ import {
 export class CodeGenerator {
     private input!: string;
     private output!: string;
-    private templates!: string;
 
     /** Main method that orchestrates the code generation process */
     generate(opts: GenerateOptions): void {
         this.input = opts.input;
         this.output = opts.output;
-        this.templates = opts.templates;
 
         if (!fs.existsSync(this.input) && !fs.existsSync(path.join(__dirname, this.input))) {
             throw new Error('Input file directory does not exist');
@@ -92,7 +90,7 @@ export class CodeGenerator {
             const name: string = mergedClass.properties.Name;
             const elements: any = mergedClass.properties;
 
-            Object.entries(templates).forEach(([language, templatesPerLanguage]: [string, LanguageTemplates]) => {
+            Object.entries(templates).forEach(([_language, templatesPerLanguage]: [string, LanguageTemplates]) => {
                 if (!templatesPerLanguage.config) {
                     console.log('Config is undefined for templatesPerLanguage:', templatesPerLanguage);
                     return;

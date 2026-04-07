@@ -47,7 +47,7 @@ export class InitializeService {
             // If the directory fails to be created, throw an error
             try {
                 fs.mkdirSync(opts.directory);
-            } catch (err) {
+            } catch {
                 throw new Error(`Failed to create directory: ${opts.directory}`);
             }
         }
@@ -58,7 +58,7 @@ export class InitializeService {
         // Create the Templates/Language directory structure
         try {
             fs.mkdirSync(templatesOutputDir, { recursive: true });
-        } catch (err) {
+        } catch {
             throw new Error(`Failed to create templates directory: ${templatesOutputDir}`);
         }
 

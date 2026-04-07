@@ -8,10 +8,10 @@ import { RelationData } from './mermaid-model/relationData';
 let classDiagramParser: any;
 try {
     classDiagramParser = require('./classDiagramParser');
-} catch (error) {
+} catch {
     try {
         classDiagramParser = require('./dist/classDiagramParser');
-    } catch (distError) {
+    } catch {
         throw new Error(
             'Could not find classDiagramParser in ./ or ./dist/ locations. Please ensure the parser is generated.',
         );
