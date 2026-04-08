@@ -113,4 +113,4 @@ This project is licensed under the [MIT License](./LICENSE.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTIONS.md](./CONTRIBUTIONS.md) to get started.
+Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
