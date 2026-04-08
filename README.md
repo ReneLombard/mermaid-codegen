@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/mermaid-codegen.svg)](https://www.npmjs.com/package/mermaid-codegen)
 [![Build, Test, and Publish](https://github.com/ReneLombard/mermaid-codegen/actions/workflows/npm-publish-packages.yml/badge.svg)](https://github.com/ReneLombard/mermaid-codegen/actions/workflows/npm-publish-packages.yml)
 [![npm downloads](https://img.shields.io/npm/dm/mermaid-codegen.svg)](https://www.npmjs.com/package/mermaid-codegen)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
 [![Documentation](https://img.shields.io/badge/docs-vitepress-brightgreen)](https://renelombard.github.io/mermaid-codegen/)
 
 > Convert [Mermaid](https://mermaid.js.org/) class diagrams into source code using a documentation-first approach.
@@ -107,7 +107,7 @@ For full command reference, see the [Commands documentation](https://renelombard
 
 ## 📄 License
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This project is licensed under the [MIT License](./LICENSE.md).
 
 ---
 
