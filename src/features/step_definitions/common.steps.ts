@@ -88,7 +88,7 @@ Given('YAML output directories are prepared', function (this: CustomWorld) {
 
 Given('the file watching service is available', async function (this: CustomWorld) {
     // Copy templates to test workspace to support file watching tests
-    const sourceTemplatesPath = path.resolve(__dirname, '..', '..', '..', '..', 'Templates');
+    const sourceTemplatesPath = path.resolve(__dirname, '..', '..', '..', 'Templates');
     const testTemplatesPath = path.join(this.workspaceDir, 'Templates');
 
     this.attach(`Source templates path: ${sourceTemplatesPath}`);
