@@ -1,1 +1,73 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+{{#each Usings}}
+using {{this}};
+{{/each}}
+
+{{#if this.Namespace}}namespace {{this.Namespace}};{{/if}}
+
+{{{xmlSummary this.Comment ""}}}
+{{#if this.Annotations.Table}}[Table("{{this.Annotations.Table.Name}}"{{#if this.Annotations.Table.Schema}}, Schema = "{{this.Annotations.Table.Schema}}"{{/if}})]
+{{/if}}
+public partial class {{Name}}{{#if this.Inheritance}} : {{#each this.Inheritance}}{{@key}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}
+{
+
+{{#each Attributes}}
+{{{xmlSummary this.Comment "    "}}}
+    {{#if this.Annotations.Key}}
+    [Key]
+    {{/if}}
+    {{#if this.Annotations.DatabaseGenerated}}
+    [DatabaseGenerated(DatabaseGeneratedOption.{{this.Annotations.DatabaseGenerated}})]
+    {{/if}}
+    {{#if this.Annotations.Column}}
+    [Column("{{this.Annotations.Column.Name}}"{{#if this.Annotations.Column.Order}}, Order = {{this.Annotations.Column.Order}}{{/if}})]
+    {{/if}}
+    {{#if this.Annotations.ForeignKey}}
+    [ForeignKey("{{this.Annotations.ForeignKey.Name}}")]
+    {{/if}}
+    {{#if this.Annotations.NotMapped}}
+    [NotMapped]
+    {{/if}}
+    {{#if this.Annotations.Required}}
+    {{#if this.Annotations.Required.AllowEmptyStrings}}[Required(AllowEmptyStrings = true)]{{else}}[Required]{{/if}}
+    {{/if}}
+    {{#if this.Annotations.MaxLength}}
+    [MaxLength({{this.Annotations.MaxLength.Length}}{{#if this.Annotations.MaxLength.ErrorMessage}}, ErrorMessage="{{this.Annotations.MaxLength.ErrorMessage}}"{{/if}})]
+    {{/if}}
+    {{#if this.Annotations.MinLength}}
+    [MinLength({{this.Annotations.MinLength.Length}}{{#if this.Annotations.MinLength.ErrorMessage}}, ErrorMessage="{{this.Annotations.MinLength.ErrorMessage}}"{{/if}})]
+    {{/if}}
+    {{#if this.Annotations.Range}}
+    [Range({{this.Annotations.Range.Min}},{{this.Annotations.Range.Max}}{{#if this.Annotations.Range.ErrorMessage}}, ErrorMessage = "{{this.Annotations.Range.ErrorMessage}}"{{/if}})]
+    {{/if}}
+    {{this.Scope}} {{{this.Type}}} {{@key}} { get; set; }{{#if this.DefaultValue}} = {{#if (isEq this.DefaultValue "default")}}new(){{else}}{{{this.DefaultValue}}}{{/if}};{{/if}}
+
+{{/each}}
+{{!-- Compositions become virtual navigation properties for EF lazy loading --}}
+{{#if this.Compositions}}
+{{#each this.Compositions}}
+    public virtual {{#if (isEq this.Multiplicity "1")}}{{{@key}}}? {{@key}}{{else}}ICollection<{{@key}}> {{@key}}{{/if}} { get; set; }{{#unless (isEq this.Multiplicity "1")}} = new List<{{@key}}>();{{/unless}}
+
+{{/each}}
+{{/if}}
+{{!-- Aggregations become virtual navigation properties --}}
+{{#if this.Aggregations}}
+{{#each this.Aggregations}}
+    public virtual {{#if (isEq this.Multiplicity "1")}}{{{@key}}}? {{@key}}{{else}}ICollection<{{@key}}> {{@key}}{{/if}} { get; set; }{{#unless (isEq this.Multiplicity "1")}} = new List<{{@key}}>();{{/unless}}
+
+{{/each}}
+{{/if}}
+{{#if this.Associations}}
+{{#each Associations}}
+    public virtual {{#if (isEq this.Multiplicity "1")}}{{{@key}}}? {{@key}}{{else}}ICollection<{{@key}}> {{@key}}{{/if}} { get; set; }{{#unless (isEq this.Multiplicity "1")}} = new List<{{@key}}>();{{/unless}}
+
+{{/each}}
+{{/if}}
+{{#each Methods}}
+    {{#if this.Scope}}{{this.Scope}}{{else}}public{{/if}} partial {{{this.ReturnType}}} {{@key}}{{#if this.Arguments}}( {{#each this.Arguments}}{{{this.Type}}} {{this.Name}}{{#unless @last}},{{/unless}}{{/each}}){{else}}(){{/if}};
+{{/each}}
+}
