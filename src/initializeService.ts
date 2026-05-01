@@ -68,17 +68,19 @@ export class InitializeService {
             fs.copyFileSync(srcPath, destPath);
         });
 
-        // Create a basic config.json file
+        // Create mermaid-codegen.config.json with all required fields
         const configContent = JSON.stringify(
             {
                 language: opts.language,
+                mermaidDirectory: 'docs',
                 templatesDirectory: `Templates/${opts.language}`,
-                outputDirectory: 'output',
+                definitionsDirectory: 'Definitions',
+                outputDirectory: 'src',
             },
             null,
             2,
         );
-        fs.writeFileSync(path.join(outputDir, 'config.json'), configContent);
+        fs.writeFileSync(path.join(outputDir, 'mermaid-codegen.config.json'), configContent);
 
         console.log(`Copied templates for ${opts.language} to ${outputDir}`);
         return 0;

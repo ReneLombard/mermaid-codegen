@@ -31,13 +31,13 @@ function registerHelpers() {
 }
 
 function loadStorageTemplate(): HandlebarsTemplateDelegate {
-    const templatePath = path.resolve(__dirname, '..', '..', 'Templates', 'C#', 'storage.csharp.hbs');
+    const templatePath = path.resolve(__dirname, '..', 'Templates', 'C#', 'storage.csharp.hbs');
     const raw = fs.readFileSync(templatePath, 'utf-8');
     return Handlebars.compile(raw);
 }
 
 function loadClassTemplate(): HandlebarsTemplateDelegate {
-    const templatePath = path.resolve(__dirname, '..', '..', 'Templates', 'C#', 'class.csharp.hbs');
+    const templatePath = path.resolve(__dirname, '..', 'Templates', 'C#', 'class.csharp.hbs');
     const raw = fs.readFileSync(templatePath, 'utf-8');
     return Handlebars.compile(raw);
 }

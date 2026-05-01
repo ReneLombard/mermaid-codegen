@@ -22,13 +22,14 @@ try {
 interface ParserYY {
     namespaces: { [namespace: string]: { [className: string]: ClassData } };
     currentNamespace?: string;
-    addNamespace: (namespace: string) => void;
+    addNamespace: (namespace: string) => string;
+    popNamespace: () => void;
     setDirection: () => void;
     addClass: (className: string) => void;
     addMembers: (className: string, members: string[]) => void;
     addRelation: (relation: Relation) => void;
     cleanupLabel: (label: string) => string;
-    addClassesToNamespace: (namespace: string, classes: string[]) => void;
+    addClassesToNamespace: (namespace: string, classes: string[], notes?: any[]) => void;
     relationType: {
         EXTENSION: string;
         COMPOSITION: string;
@@ -176,11 +177,12 @@ export class MermaidClassDiagramParser {
     }
 
     /** Adds a new namespace to the parsed structure */
-    addNamespace(namespace: string) {
+    addNamespace(namespace: string): string {
         if (!this.namespaces[namespace]) {
             this.namespaces[namespace] = {};
         }
         this.currentNamespace = namespace; // Set the current namespace
+        return namespace;
     }
 
     /** Adds a new class to the current namespace */
@@ -225,7 +227,7 @@ export class MermaidClassDiagramParser {
 
                 const matchMethod = trimmedMember.match(/([+\-#~])\s*(\w+)\s*\(([^)]*)\)\s*:\s*([\w~<>,\s]+)/);
                 const matchAttribute = trimmedMember.match(
-                    /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)*?$/,
+                    /([+\-#~])\s*([\w<>~,\[\]\s\.\?]+)\s+(\w+)\s*(?:=\s*([^;]*))?;*([\*\$]*)$/,
                 );
                 const matchType = trimmedMember.match(/<<(.*?)>>/);
                 const matchOption = trimmedMember.match(/^(\w+)(?:\s*=\s*(\w+))?$/);
@@ -380,8 +382,13 @@ export class MermaidClassDiagramParser {
         }
     }
 
+    /** Resets the current namespace after a namespace block closes */
+    popNamespace() {
+        this.currentNamespace = '';
+    }
+
     /** Adds multiple classes to a namespace */
-    addClassesToNamespace(namespace: string, classes: string[]) {
+    addClassesToNamespace(namespace: string, classes: string[], _notes?: any[]) {
         this.addNamespace(namespace); // Ensure namespace is created
         this.currentNamespace = namespace;
         classes.forEach((className: string) => this.addClass(className));
@@ -398,8 +405,12 @@ export class MermaidClassDiagramParser {
         this.internalParser.yy = {
             namespaces: {},
 
-            addNamespace: function (namespace: string): void {
-                self.addNamespace(namespace);
+            addNamespace: function (namespace: string): string {
+                return self.addNamespace(namespace);
+            },
+
+            popNamespace: function (): void {
+                self.popNamespace();
             },
 
             setDirection: function (): void {},

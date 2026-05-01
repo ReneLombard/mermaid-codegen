@@ -1,3 +1,4 @@
+# Commands
 
 ## Commands Overview
 
@@ -8,7 +9,7 @@
 Initializes a new project for a specific programming language.
 
 ```cmd
-mermaid-codegen initialize -l <language> -d <directory>
+npx mermaid-codegen initialize -l <language> -d <directory>
 ```
 
 - **`-l, --language`**: The programming language to initialize (currently `C#` is the only supported language).
@@ -26,16 +27,35 @@ npx mermaid-codegen list-languages
 
 Transforms Mermaid diagrams into YAML templates.
 
+**Config mode** (no flags — reads from `mermaid-codegen.config.json`):
+
+```cmd
+npx mermaid-codegen transform
+```
+
+**Explicit mode** (all flags required):
+
 ```cmd
 npx mermaid-codegen transform -i <input> -o <output>
 ```
 
 - **`-i, --input`**: Path to the input Mermaid file or directory.
 - **`-o, --output`**: Path to the output directory where YAML templates will be saved.
+- **`-n, --skipnamespace`**: Optional. Part of the namespace to strip from output paths.
+
+Provide both `-i` and `-o` for explicit mode, or neither for config mode.
 
 ### `generate`
 
 Generates code from YAML templates using Handlebars templates.
+
+**Config mode** (no flags — reads from `mermaid-codegen.config.json`):
+
+```cmd
+npx mermaid-codegen generate
+```
+
+**Explicit mode** (all flags required):
 
 ```cmd
 npx mermaid-codegen generate -i <input> -o <output> -t <templates>
@@ -45,17 +65,32 @@ npx mermaid-codegen generate -i <input> -o <output> -t <templates>
 - **`-o, --output`**: Path to the output directory where the generated code will be saved.
 - **`-t, --templates`**: Path to the directory containing Handlebars (`.hbs`) templates.
 
+Provide all three flags for explicit mode, or none for config mode.
+
 ### `watch`
 
 Watches for changes in Mermaid or YAML files and automatically regenerates the output.
+
+**Config mode** (recommended — reads all paths from `mermaid-codegen.config.json`):
+
+```cmd
+npx mermaid-codegen watch
+```
+
+**Explicit mode** (all four flags required):
 
 ```cmd
 npx mermaid-codegen watch -m <mermaidInput> -y <ymlInput> -o <generateOutput> --templates <templates>
 ```
 
 - **`-m, --mermaidInput`**: Path to the Mermaid file or directory to watch.
-- **`-y, --ymlInput`**: Path to the YAML file or directory to watch.
+- **`-y, --ymlInput`**: Path to the YAML output directory.
 - **`-o, --generateOutput`**: Path to the output directory for the generated code.
 - **`--templates`**: Path to the directory containing Handlebars (`.hbs`) templates.
+- **`-n, --skipnamespace`**: Optional. Part of the namespace to strip from output paths.
 
-When running the application for the first time, you will be greeted with a seamless workflow to transform your diagrams into code. Explore the commands above to unlock the full potential of `mermaid-codegen`!
+Config mode requires a `mermaid-codegen.config.json` file, created by the `initialize` command. Provide all four flags
+for explicit mode, or none for config mode — mixing partial flags is not supported.
+
+When running the application for the first time, you will be greeted with a seamless workflow to transform your diagrams
+into code. Explore the commands above to unlock the full potential of `mermaid-codegen`!

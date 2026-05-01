@@ -12,10 +12,9 @@ export class ListLanguagesService {
 
         // Try multiple potential template directory locations
         const possibleTemplateDirs = [
-            path.join(__dirname, 'templates'),
-            path.join(__dirname, '../templates'),
-            path.join(__dirname, '../../Templates'),
+            path.join(__dirname, 'Templates'),
             path.join(__dirname, '../Templates'),
+            path.join(__dirname, '../../Templates'),
             path.resolve(process.cwd(), 'Templates'),
             path.resolve(process.cwd(), '../Templates'),
         ];

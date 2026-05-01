@@ -9,6 +9,7 @@ import { TransformManager } from './transformManager';
 import * as chokidar from 'chokidar';
 import { Stats } from 'fs';
 import * as path from 'path';
+import { resolveProjectConfig } from './configResolver';
 import { TransformOptions } from './types/transformOptions';
 
 // Import package.json for CLI metadata
@@ -82,21 +83,45 @@ program
 program
     .command('transform')
     .description('Transforms the mermaid to yml templates.')
-    .requiredOption('-i, --input <input>', 'Input file path.')
-    .requiredOption('-o, --output <output>', 'Output directory path.')
+    .option('-i, --input <input>', 'Input file path.')
+    .option('-o, --output <output>', 'Output directory path.')
     .option('-n, --skipnamespace <namespace>', 'Part of the namespace to skip for the output directory.')
-    .action((opts: TransformOptions) => {
-        commandHandler.handleTransformCommand(opts);
+    .action((opts: Partial<TransformOptions>) => {
+        if (opts.input && opts.output) {
+            commandHandler.handleTransformCommand(opts as TransformOptions);
+        } else if (!opts.input && !opts.output) {
+            const { config, configDir } = resolveProjectConfig(process.cwd());
+            commandHandler.handleTransformCommand({
+                input: path.resolve(configDir, config.mermaidDirectory),
+                output: path.resolve(configDir, config.definitionsDirectory),
+                skipnamespace: opts.skipnamespace ?? config.skipnamespace,
+            });
+        } else {
+            console.error('Error: provide both -i and -o for explicit mode, or neither for config mode.');
+            process.exit(1);
+        }
     });
 
 program
     .command('generate')
     .description('YML to output generator.')
-    .requiredOption('-i, --input <input>', 'Input YML file path or directory.')
-    .requiredOption('-o, --output <output>', 'Output Code directory path.')
-    .requiredOption('-t, --templates <templates>', 'The directory that contains a list of hbs files.')
-    .action((opts: GenerateOptions) => {
-        commandHandler.handleGenerateCommand(opts);
+    .option('-i, --input <input>', 'Input YML file path or directory.')
+    .option('-o, --output <output>', 'Output Code directory path.')
+    .option('-t, --templates <templates>', 'The directory that contains a list of hbs files.')
+    .action((opts: Partial<GenerateOptions>) => {
+        if (opts.input && opts.output && opts.templates) {
+            commandHandler.handleGenerateCommand(opts as GenerateOptions);
+        } else if (!opts.input && !opts.output && !opts.templates) {
+            const { config, configDir } = resolveProjectConfig(process.cwd());
+            commandHandler.handleGenerateCommand({
+                input: path.resolve(configDir, config.definitionsDirectory),
+                output: path.resolve(configDir, config.outputDirectory),
+                templates: path.resolve(configDir, config.templatesDirectory),
+            });
+        } else {
+            console.error('Error: provide all of -i, -o, -t for explicit mode, or none for config mode.');
+            process.exit(1);
+        }
     });
 
 function attemptTask(fn: () => Promise<any> | any, retries: number = 3, delayMs: number = 1000): Promise<any> {
@@ -120,31 +145,40 @@ program
     .option('-n, --skipnamespace <namespace>', 'Part of the namespace to skip for the output directory.')
     .option('--templates <templates>', 'Directory that contains your hbs templates.')
     .action((opts: WatchOptions & { inputDir?: string; outputDir?: string }) => {
-        // Handle simplified syntax
+        // Fail fast if deprecated simplified flags are used
+        if (opts.inputDir || opts.outputDir) {
+            console.error(
+                'Error: --input-dir and --output-dir are not supported.\n\n' +
+                    'Use one of the two supported watch modes:\n\n' +
+                    '  Config mode (recommended):\n' +
+                    "    Run 'mermaid-codegen initialize -l <language> -d <directory>' first,\n" +
+                    "    then run 'mermaid-codegen watch' with no arguments.\n\n" +
+                    '  Explicit mode:\n' +
+                    '    mermaid-codegen watch -m <mermaidInput> -y <ymlInput> -o <generateOutput> --templates <templates>',
+            );
+            process.exit(1);
+        }
+
         let mermaidInput = opts.mermaidInput;
         let ymlInput = opts.ymlInput;
         let generateOutput = opts.generateOutput;
         let templates = opts.templates;
+        let skipnamespace = opts.skipnamespace;
 
-        if (opts.inputDir) {
-            mermaidInput = opts.inputDir;
-            // YAML should be output to the output directory, not the input directory
-            ymlInput = opts.outputDir || 'output';
-            if (!opts.generateOutput && opts.outputDir) {
-                generateOutput = path.join(opts.outputDir, 'code');
+        if (mermaidInput && ymlInput && generateOutput && templates) {
+            // Explicit mode: all required flags provided, skip config discovery
+        } else if (!mermaidInput && !ymlInput && !generateOutput && !templates) {
+            // Config mode: resolve all paths from mermaid-codegen.config.json
+            const { config, configDir } = resolveProjectConfig(process.cwd());
+            mermaidInput = path.resolve(configDir, config.mermaidDirectory);
+            ymlInput = path.resolve(configDir, config.definitionsDirectory);
+            generateOutput = path.resolve(configDir, config.outputDirectory);
+            templates = path.resolve(configDir, config.templatesDirectory);
+            if (!skipnamespace && config.skipnamespace) {
+                skipnamespace = config.skipnamespace;
             }
-            if (!opts.templates) {
-                // Default to Templates/C# if no templates specified in simplified mode
-                const templatesPath = path.resolve(process.cwd(), 'Templates', 'C#');
-                templates = templatesPath;
-                console.log(`Using default templates path: ${templatesPath}`);
-            }
-        }
-
-        if (!mermaidInput || !ymlInput || !generateOutput || !templates) {
-            console.error(
-                'Missing required options. Either specify all detailed options or use --input-dir and --output-dir.',
-            );
+        } else {
+            console.error('Error: provide all of -m, -y, -o, --templates for explicit mode, or none for config mode.');
             process.exit(1);
         }
 
@@ -160,15 +194,7 @@ program
         // Verify templates directory exists
         if (!fs.existsSync(templates)) {
             console.error(`Templates directory does not exist: ${templates}`);
-            // Try to find Templates in the project root
-            const alternativeTemplates = path.resolve(process.cwd(), 'Templates', 'C#');
-            if (fs.existsSync(alternativeTemplates)) {
-                templates = alternativeTemplates;
-                console.log(`Using alternative templates path: ${templates}`);
-            } else {
-                console.error(`Alternative templates path also doesn't exist: ${alternativeTemplates}`);
-                process.exit(1);
-            }
+            process.exit(1);
         }
 
         console.log(`Starting file watcher...`);
@@ -273,7 +299,7 @@ program
                     commandHandler.handleTransformCommand({
                         input: filePath,
                         output: ymlInput!,
-                        skipnamespace: opts.skipnamespace,
+                        skipnamespace: skipnamespace,
                     }),
                 );
                 console.log('Transform completed, triggering code generation...');
@@ -377,7 +403,7 @@ program
                                             commandHandler.handleTransformCommand({
                                                 input: filePath,
                                                 output: ymlInput!,
-                                                skipnamespace: opts.skipnamespace,
+                                                skipnamespace: skipnamespace,
                                             }),
                                         );
                                         await attemptTask(() =>

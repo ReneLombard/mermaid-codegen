@@ -1,10 +1,14 @@
 {
     "name": "mermaid-codegen",
-    "version": "1.1.19",
+    "version": "1.1.24",
     "main": "./dist/index.js",
     "bin": {
         "mermaid-codegen": "./dist/index.js"
     },
+    "files": [
+        "dist",
+        "Templates"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/ReneLombard/mermaid-codegen"
@@ -20,6 +24,7 @@
         "test:coverage": "npm run process-jison && jest --coverage",
         "test:ci": "npm run process-jison && jest --ci --coverage --watchAll=false",
         "test:cucumber": "npm run build:cucumber && cucumber-js",
+        "test:cucumber:docs-parity": "npm run build:cucumber && cucumber-js --tags \"@docs-parity\"",
         "test:cucumber:watch": "npm run build:cucumber && cucumber-js --watch",
         "test:integration": "npm run test:cucumber",
         "lint:deadcode": "eslint . --ext .ts --max-warnings=0",
@@ -27,9 +32,9 @@
         "lint:deps": "depcheck --ignores=\"@types/chokidar,@types/commander,@types/fs-extra,@types/handlebars,@types/jest,@types/js-yaml,@types/node,@types/yamljs,ts-jest,ts-node\"",
         "check:deadcode": "npm run lint:deadcode && npm run lint:strict-unused && npm run lint:deps",
         "transform": "npm run build && node dist/index.js transform -i ./mermaid.md -o ../output/yml -n Company.VTC",
-        "generate:code": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/code --templates \"../Templates/C#\"",
-        "generate:docs": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/docs --templates \"../Templates/Documentation\"",
-        "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output/yml\" -o \"../output/code\" --templates \"../Templates/C#\" -n Company.VTC"
+        "generate:code": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/code --templates \"./Templates/C#\"",
+        "generate:docs": "npm run build && node dist/index.js generate -i ../output/yml -o ../output/docs --templates \"./Templates/Documentation\"",
+        "watch": "npm run build && node dist/index.js watch -m ./ -y \"../output/yml\" -o \"../output/code\" --templates \"./Templates/C#\" -n Company.VTC"
     },
     "dependencies": {
         "chokidar": "^4.0.3",
