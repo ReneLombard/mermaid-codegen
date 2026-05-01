@@ -1,59 +1,86 @@
+# Language Files Explained
 
-### What does these files mean?
+After running initialize, your template files are created under:
 
-#### Language
+```text
+fleet-management/Templates/C#
+```
 
-The `language` option refers to the language [handlebars](https://handlebarsjs.com/) templates are defined.
+The most important file is:
 
-::: info
-You can also support multiple languages by providing the base folder path.
-:::
+```text
+Templates/C#/config.json
+```
 
-#### GeneratedDirectory
+## What config.json controls
 
-This generated directory refers to the directory where the code is generated. In this example it will always start by the src/ directory as a starting point.
-
-#### YmlDirectory
-
-The YML Directory refers to the intermediate yml code that will be used for code generation.
-It uses the mermaid class diagrams with the handlebars files to generate some code.
-
-### Now for the `c#\config.csharp.json` file
+Example:
 
 ```json
 {
-  "language": "CSharp",
-  "extension": "cs",
-  
-  "mappings": {
-    "Scope": {
-      "Public": "public",
-      "Private": "private",
-      "Protected": "protected"
-    },
-    "Type": {
-      "Number": "int",
-      "String": "string",
-      "REGEX:~(.*)~": "<$1>"
+    "language": "CSharp",
+    "extension": "cs",
+    "mappings": {
+        "Scope": {
+            "Public": "public",
+            "Private": "private",
+            "Protected": "protected"
+        },
+        "Type": {
+            "Number": "int",
+            "String": "string",
+            "Boolean": "bool",
+            "REGEX:~(.*)~": "<$1>"
+        }
     }
-  }
 }
 ```
-The mappings maps the mermaid types and scope to a language specific terminology.
 
-#### Extension
+### language
 
-The resulting output file extension e.g.
-`PLACEHOLDER.Generated.cs`
+A logical name for the target language used by this template set.
 
-#### Mappings
+### extension
 
-Not all languages use the same variable for the same datatype e.g. 
-`Number` in Typescript,
-`int` in C#
-You can also create your own REGEX replace for more complex situations.
+The output file extension for generated files.
 
+Example:
 
-This functionality makes it possible to override the properties defined in the YML files for the languages specific types. 
-The elements under the mappings can be extended with any property within the transformed YML files
+```text
+Vehicle.Generated.cs
+```
 
+### mappings
+
+Mappings translate values in transformed YAML to language-specific values during generation.
+
+Typical use cases:
+
+1. Scope translation, such as `Public` to `public`.
+2. Type translation, such as `Number` to `int`.
+3. Regex-based replacements for generic patterns.
+
+## How templates are selected
+
+Template files in `Templates/C#` follow this pattern:
+
+```text
+<subtype>.<language>.hbs
+```
+
+Examples:
+
+1. `class.csharp.hbs`
+2. `endpoint.csharp.hbs`
+3. `interface.csharp.hbs`
+
+The Mermaid/YAML type and subtype determine which `.hbs` template is used when generating output.
+
+## Practical Flow Recap
+
+1. Mermaid diagrams are transformed into `.Generated.yml` files.
+2. YAML files are processed with `Templates/C#/config.json` mappings.
+3. Matching Handlebars templates produce language output files.
+
+This design allows you to customize generated code behavior by changing mappings and templates without changing the
+parser.

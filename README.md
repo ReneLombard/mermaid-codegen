@@ -12,22 +12,24 @@
 
 ## 📚 Documentation
 
-Full documentation is available at **[https://renelombard.github.io/mermaid-codegen/](https://renelombard.github.io/mermaid-codegen/)**
+Full documentation is available at
+**[https://renelombard.github.io/mermaid-codegen/](https://renelombard.github.io/mermaid-codegen/)**
 
 ---
 
 ## ✨ Overview
 
-`mermaid-codegen` is a CLI tool that bridges the gap between visual architecture diagrams and source code. It follows a **documentation-first** workflow:
+`mermaid-codegen` is a CLI tool that bridges the gap between visual architecture diagrams and source code. It follows a
+**documentation-first** workflow:
 
 1. **Design** your classes in a Mermaid class diagram
 2. **Transform** the diagram into extensible YAML definitions
 3. **Generate** source code from those YAML definitions using Handlebars templates
 4. **Watch** for changes and automatically regenerate code
 
-```
-Mermaid Diagram  ──►  YAML Definitions  ──►  Source Code
-    (.md)                 (.yml)              (.cs / etc.)
+```text
+Mermaid Diagram  ->  YAML Definitions  ->  Source Code
+    (.md)               (.yml)             (.cs / etc.)
 ```
 
 ---
@@ -53,55 +55,60 @@ npx mermaid-codegen --help
 1. **Initialize** a new project with default scaffolding:
 
 ```bash
-mermaid-codegen initialize -l C# -d ./blue-prints/C#
+npx mermaid-codegen initialize -l C# -d fleet-management
 ```
 
-2. **Create** a Mermaid class diagram (e.g. `docs/fleet-management.md`):
+1. **Move into** the initialized project folder:
+
+```bash
+cd fleet-management
+```
+
+1. **Create** a Mermaid class diagram (e.g. `docs/detailed-design/vehicle.md`):
 
 ```mermaid
 classDiagram
-namespace Models {
-    class Vehicle {
-        <<class>>
-        +String Make
-        +String Model
-        +int Year
-        +String Status
-    }
+class Vehicle {
+    +String Make
+    +String Model
+    +Number Year
 }
 ```
 
-3. **Transform** the diagram into YAML:
+1. **Transform** the diagram into YAML:
 
 ```bash
-mermaid-codegen transform -i ./docs -o ./definitions
+npx mermaid-codegen transform -i ./docs/detailed-design -o ./definitions
 ```
 
-4. **Generate** source code from the YAML:
+1. **Generate** source code from the YAML:
 
 ```bash
-mermaid-codegen generate -i ./definitions -o ./src -t ./blue-prints/C#
+npx mermaid-codegen generate -i ./definitions -o ./output/code -t ./Templates/C#
 ```
 
-5. **Watch** for changes and auto-regenerate:
+1. **Optional:** watch for changes and auto-regenerate:
 
 ```bash
-mermaid-codegen watch -m ./docs -y ./definitions -o ./src --templates ./blue-prints/C#
+npx mermaid-codegen watch --input-dir=./docs/detailed-design --output-dir=./output
 ```
+
+For the full walkthrough and expected outputs, see the documentation site.
 
 ---
 
 ## 🛠 Commands
 
-| Command | Description |
-|---|---|
-| `initialize` | Scaffold a new project with default templates for a language |
-| `transform` | Convert a Mermaid class diagram into YAML definition files |
-| `generate` | Generate source code from YAML definitions using Handlebars templates |
-| `watch` | Watch for changes and automatically regenerate YAML/code |
-| `list-languages` | List all supported programming languages |
+| Command          | Description                                                           |
+| ---------------- | --------------------------------------------------------------------- |
+| `initialize`     | Scaffold a new project with default templates for a language          |
+| `transform`      | Convert a Mermaid class diagram into YAML definition files            |
+| `generate`       | Generate source code from YAML definitions using Handlebars templates |
+| `watch`          | Watch for changes and automatically regenerate YAML/code              |
+| `list-languages` | List all supported programming languages                              |
 
-For full command reference, see the [Commands documentation](https://renelombard.github.io/mermaid-codegen/pages/commands).
+For full command reference, see the
+[Commands documentation](https://renelombard.github.io/mermaid-codegen/pages/commands).
 
 ---
 
