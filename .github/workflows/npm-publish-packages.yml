@@ -27,6 +27,8 @@ jobs:
               run: cd src && npm run test:ci
             - name: Run integration tests
               run: cd src && npm run test:cucumber
+            - name: Verify docs-behavior parity
+              run: cd src && npm run test:cucumber:docs-parity
             - name: Build project
               run: cd src && npm run build
 

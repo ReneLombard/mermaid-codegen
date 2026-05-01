@@ -1,3 +1,4 @@
+# Commands
 
 ## Commands Overview
 
@@ -8,7 +9,7 @@
 Initializes a new project for a specific programming language.
 
 ```cmd
-mermaid-codegen initialize -l <language> -d <directory>
+npx mermaid-codegen initialize -l <language> -d <directory>
 ```
 
 - **`-l, --language`**: The programming language to initialize (currently `C#` is the only supported language).
@@ -49,13 +50,24 @@ npx mermaid-codegen generate -i <input> -o <output> -t <templates>
 
 Watches for changes in Mermaid or YAML files and automatically regenerates the output.
 
+Simplified syntax:
+
+```cmd
+npx mermaid-codegen watch --input-dir <inputDir> --output-dir <outputDir>
+```
+
+Detailed syntax:
+
 ```cmd
 npx mermaid-codegen watch -m <mermaidInput> -y <ymlInput> -o <generateOutput> --templates <templates>
 ```
 
+- **`--input-dir`**: Input directory for Mermaid files in simplified mode.
+- **`--output-dir`**: Base output directory in simplified mode.
 - **`-m, --mermaidInput`**: Path to the Mermaid file or directory to watch.
 - **`-y, --ymlInput`**: Path to the YAML file or directory to watch.
 - **`-o, --generateOutput`**: Path to the output directory for the generated code.
 - **`--templates`**: Path to the directory containing Handlebars (`.hbs`) templates.
 
-When running the application for the first time, you will be greeted with a seamless workflow to transform your diagrams into code. Explore the commands above to unlock the full potential of `mermaid-codegen`!
+When running the application for the first time, you will be greeted with a seamless workflow to transform your diagrams
+into code. Explore the commands above to unlock the full potential of `mermaid-codegen`!

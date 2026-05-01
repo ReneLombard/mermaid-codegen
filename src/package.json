@@ -24,6 +24,7 @@
         "test:coverage": "npm run process-jison && jest --coverage",
         "test:ci": "npm run process-jison && jest --ci --coverage --watchAll=false",
         "test:cucumber": "npm run build:cucumber && cucumber-js",
+        "test:cucumber:docs-parity": "npm run build:cucumber && cucumber-js --tags \"@docs-parity\"",
         "test:cucumber:watch": "npm run build:cucumber && cucumber-js --watch",
         "test:integration": "npm run test:cucumber",
         "lint:deadcode": "eslint . --ext .ts --max-warnings=0",
