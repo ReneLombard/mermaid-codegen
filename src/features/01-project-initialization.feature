@@ -22,12 +22,14 @@ Background: Project initialization testing environment
             When Alice runs "mermaid-codegen initialize -l C# -d test-project"
             Then a directory "test-project" should be created
                 And the directory "test-project/Templates/C#" should exist
-                And the file "test-project/config.json" should contain:
+                And the file "test-project/mermaid-codegen.config.json" should contain:
                 """
                 {
                   "language": "C#",
+                  "mermaidDirectory": "docs",
                   "templatesDirectory": "Templates/C#",
-                  "outputDirectory": "output"
+                  "definitionsDirectory": "Definitions",
+                  "outputDirectory": "src"
                 }
                 """
                 And the command should return exit code 0

@@ -42,7 +42,7 @@ fleet-management/
 │       ├── enumeration.csharp.hbs
 │       ├── storage.csharp.hbs
 │       └── config.json
-└── config.json
+└── mermaid-codegen.config.json
 ```
 
 Change into the project root before continuing:
@@ -140,13 +140,19 @@ dotnet build ./Src
 
 After your first successful transform and generate flow, you can run watch mode.
 
-Simplified syntax (recommended for getting started):
+Config mode (recommended) — no flags needed, all paths come from `mermaid-codegen.config.json`:
 
 ```bash
-npx mermaid-codegen watch --input-dir=./docs/detailed-design --output-dir=./src/Models
+npx mermaid-codegen watch
 ```
 
-Detailed syntax is documented on the Commands page for advanced control.
+Explicit mode — specify all paths directly, config file is not read:
+
+```bash
+npx mermaid-codegen watch -m ./docs/detailed-design -y ./Definitions -o ./Src --templates ./Templates/C#
+```
+
+Detailed syntax options are documented on the Commands page.
 
 ## Next Step
 
