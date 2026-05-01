@@ -918,19 +918,16 @@ Given(
 );
 
 Given('the corresponding output files exist', async function (this: CustomWorld) {
-    // Wait for the watch process to generate initial output files
+    // Wait for the watch process to generate initial output files anywhere in the workspace
     const timeoutMs = 15000;
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeoutMs) {
-        const outputCodeDir = path.join(this.workspaceDir, 'output', 'code');
-        if (await this.fileExists(outputCodeDir)) {
-            const entries = await fs.promises.readdir(outputCodeDir, { recursive: true });
-            const codeFiles = (entries as string[]).filter((f) => f.endsWith('.cs'));
-            if (codeFiles.length > 0) {
-                this.attach(`Output files exist: ${codeFiles.join(', ')}`);
-                return;
-            }
+        const csFiles = await this.findFilesInWorkspace('.cs');
+        if (csFiles.length > 0) {
+            const relPaths = csFiles.map((f) => path.relative(this.workspaceDir, f));
+            this.attach(`Output files exist: ${relPaths.join(', ')}`);
+            return;
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -1130,4 +1127,35 @@ Then('no new code files should be generated for the invalid content', async func
     } else {
         this.attach('No code directory - no new code files generated');
     }
+});
+
+Then('the watch process should have exited with a non-zero code', async function (this: CustomWorld) {
+    const timeoutMs = 10000;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+        if (this.watchProcess && this.watchProcess.exitCode !== null) {
+            assert.notStrictEqual(
+                this.watchProcess.exitCode,
+                0,
+                `Expected watch process to exit with non-zero code, but exited with: ${this.watchProcess.exitCode}`,
+            );
+            this.attach(`Watch process exited with non-zero code: ${this.watchProcess.exitCode}`);
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    throw new Error('Watch process did not exit within the expected time');
+});
+
+Then('the error output should contain {string}', function (this: CustomWorld, expectedText: string) {
+    const stderr = this.testData.watchStderr || '';
+    const stdout = this.testData.watchStdout || '';
+    const combined = stderr + stdout;
+    assert.ok(
+        combined.includes(expectedText),
+        `Expected error output to contain "${expectedText}" but got:\nstderr: "${stderr}"\nstdout: "${stdout}"`,
+    );
+    this.attach(`Verified error output contains: "${expectedText}"`);
 });

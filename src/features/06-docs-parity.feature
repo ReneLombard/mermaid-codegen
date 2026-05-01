@@ -16,12 +16,14 @@ Background: Docs parity test environment
     Scenario: Canonical C# quick start workflow remains valid
         Given Grace runs "mermaid-codegen initialize -l C# -d fleet-management"
             And the directory "fleet-management/Templates/C#" should exist
-            And the file "fleet-management/config.json" should contain:
+            And the file "fleet-management/mermaid-codegen.config.json" should contain:
             """
             {
               "language": "C#",
+              "mermaidDirectory": "docs",
               "templatesDirectory": "Templates/C#",
-              "outputDirectory": "output"
+              "definitionsDirectory": "Definitions",
+              "outputDirectory": "src"
             }
             """
             And Grace has created a file "docs/detailed-design/vehicle.md" with content:

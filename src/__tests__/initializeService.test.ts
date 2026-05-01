@@ -162,23 +162,35 @@ describe('InitializeService', () => {
             consoleSpy.mockRestore();
         });
 
-        it('should handle empty template directory', () => {
+        it('should write mermaid-codegen.config.json with all five required fields', () => {
             // Arrange
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-            const opts = { language: 'empty', directory: './empty-project' };
+            const opts = { language: 'C#', directory: './my-project' };
 
             mockFs.existsSync.mockReturnValue(true);
             mockFs.readdirSync.mockReturnValue([] as any);
             mockFs.copyFileSync.mockImplementation(() => {});
-            mockFs.mkdirSync.mockImplementation(() => '/mock/path'); // Ensure mkdirSync works
+            mockFs.mkdirSync.mockImplementation(() => '/mock/path');
+
+            let writtenPath = '';
+            let writtenContent = '';
+            mockFs.writeFileSync.mockImplementation((filePath: any, content: any) => {
+                writtenPath = String(filePath);
+                writtenContent = String(content);
+            });
 
             // Act
-            const result = initializeService.runInitializeAndReturnExitCode(opts);
+            initializeService.runInitializeAndReturnExitCode(opts);
 
             // Assert
-            expect(result).toBe(0);
-            expect(mockFs.copyFileSync).not.toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('Copied templates for empty to ./empty-project');
+            expect(writtenPath).toContain('mermaid-codegen.config.json');
+            const parsed = JSON.parse(writtenContent);
+            expect(parsed.language).toBe('C#');
+            expect(parsed.mermaidDirectory).toBe('docs');
+            expect(parsed.templatesDirectory).toBe('Templates/C#');
+            expect(parsed.definitionsDirectory).toBe('Definitions');
+            expect(parsed.outputDirectory).toBe('src');
+
             consoleSpy.mockRestore();
         });
     });

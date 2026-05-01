@@ -11,13 +11,14 @@ Background: File watching system testing environment
     Test scope: File monitoring, change detection, and automated processing
 
         Given Emma has set up a clean test workspace
+            And Emma runs "mermaid-codegen initialize -l C# -d ."
             And Emma has prepared initial Mermaid and YAML files
             And the file watching service is available
 
     Scenario: Watch Mermaid file modifications automatically
         Monitor Mermaid files and trigger YAML regeneration on changes
 
-            Given Emma has created a file "vehicle.md" with:
+            Given Emma has created a file "docs/vehicle.md" with:
                 """
                 ```mermaid
                 classDiagram
@@ -28,10 +29,10 @@ Background: File watching system testing environment
                 }
                 ```
                 """
-                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And Emma has started "mermaid-codegen watch" in the background
                 And the watch process is running
-                And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                And Emma records the hash of "src/global/Vehicle.Generated.cs"
+                And the file "src/global/Vehicle.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -50,7 +51,7 @@ Background: File watching system testing environment
                     }
                     """
 
-            When Emma modifies the file "vehicle.md" to:
+            When Emma modifies the file "docs/vehicle.md" to:
                 """
                 ```mermaid
                 classDiagram
@@ -62,9 +63,9 @@ Background: File watching system testing environment
                 }
                 ```
                 """
-            Then Emma verifies the hash of "output/code/global/Vehicle.Generated.cs" has changed
-                And the timestamp of "output/global/Vehicle.Generated.yml" should be newer than "vehicle.md"
-                And the file "output/global/Vehicle.Generated.yml" should contain:
+            Then Emma verifies the hash of "src/global/Vehicle.Generated.cs" has changed
+                And the timestamp of "Definitions/global/Vehicle.Generated.yml" should be newer than "docs/vehicle.md"
+                And the file "Definitions/global/Vehicle.Generated.yml" should contain:
                     """
                     Name: Vehicle
                     Namespace: global
@@ -87,7 +88,7 @@ Background: File watching system testing environment
                         IsSystemType: true
                         Scope: Public
                     """
-                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                And the file "src/global/Vehicle.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -111,7 +112,7 @@ Background: File watching system testing environment
     Scenario: Watch YAML file modifications for code updates
         Monitor YAML files and trigger code regeneration on changes
 
-                        Given Emma has created a file "vehicle.yml" with content:
+                        Given Emma has created a file "docs/vehicle.yml" with content:
                                 """
                                 Name: Vehicle
                                 Namespace: global
@@ -138,10 +139,10 @@ Background: File watching system testing environment
                                 Implementations: {}
                                 Lines: {}
                                 """
-                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And Emma has started "mermaid-codegen watch" in the background
                 And the watch process is running
-                And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-            When Emma modifies the file "vehicle.yml" to:
+                And Emma records the hash of "src/global/Vehicle.Generated.cs"
+            When Emma modifies the file "docs/vehicle.yml" to:
                 """
                 Name: Vehicle
                 Namespace: global
@@ -168,9 +169,9 @@ Background: File watching system testing environment
                 Implementations: {}
                 Lines: {}
                 """
-            Then Emma verifies the hash of "output/code/global/Vehicle.Generated.cs" has changed
-                And the timestamp of the generated file should be newer than "vehicle.yml"
-                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+            Then Emma verifies the hash of "src/global/Vehicle.Generated.cs" has changed
+                And the timestamp of the generated file should be newer than "docs/vehicle.yml"
+                And the file "src/global/Vehicle.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -192,8 +193,19 @@ Background: File watching system testing environment
     Scenario: Watch handles new file creation events
         Detect and process newly created files in watched directories
 
-            Given Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
-            When Emma creates a new file "product.md" with a Product class definition:
+            Given Emma has created a file "docs/placeholder.md" with content:
+                """
+                ```mermaid
+                classDiagram
+                class Placeholder {
+                    +String Id
+                }
+                ```
+                """
+                And Emma has started "mermaid-codegen watch" in the background
+                And the watch process is running
+                And Emma waits for initial file processing to complete
+            When Emma creates a new file "docs/product.md" with a Product class definition:
                 """
                 ```mermaid
                 classDiagram
@@ -206,8 +218,8 @@ Background: File watching system testing environment
                 """
                # And Emma waits for the file watcher to detect changes
                 And Emma waits for initial file processing to complete
-            Then a file "output/global/Product.Generated.yml" should be created
-                And the file "output/global/Product.Generated.yml" should contain:
+            Then a file "Definitions/global/Product.Generated.yml" should be created
+                And the file "Definitions/global/Product.Generated.yml" should contain:
                     """
                     Name: Product
                     Namespace: global
@@ -226,8 +238,8 @@ Background: File watching system testing environment
                         IsSystemType: true
                         Scope: Public
                     """
-                And a file "output/code/global/Product.Generated.cs" should be created
-                And the file "output/code/global/Product.Generated.cs" should contain:
+                And a file "src/global/Product.Generated.cs" should be created
+                And the file "src/global/Product.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -249,7 +261,7 @@ Background: File watching system testing environment
     Scenario: Watch handles file deletion events appropriately
         Clean up generated files when source files are removed
 
-            Given Emma has created a file "temp-class.md" with content:
+            Given Emma has created a file "docs/temp-class.md" with content:
                 """
                 ```mermaid
                 classDiagram
@@ -259,10 +271,10 @@ Background: File watching system testing environment
                 }
                 ```
                 """
-                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And Emma has started "mermaid-codegen watch" in the background
                 And the corresponding output files exist
-                And Emma records the hash of "output/code/global/TempClass.Generated.cs"
-                And the file "output/code/global/TempClass.Generated.cs" should contain:
+                And Emma records the hash of "src/global/TempClass.Generated.cs"
+                And the file "src/global/TempClass.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -278,15 +290,15 @@ Background: File watching system testing environment
 
                     }
                     """
-            When Emma deletes the file "temp-class.md"
+            When Emma deletes the file "docs/temp-class.md"
              #   And Emma waits for the file watcher to detect changes
-            Then the file "output/global/TempClass.Generated.yml" should be removed
-                And the file "output/code/global/TempClass.Generated.cs" should be removed
+            Then the file "Definitions/global/TempClass.Generated.yml" should be removed
+                And the file "src/global/TempClass.Generated.cs" should be removed
 
     Scenario: Watch handles invalid file content gracefully
         Ensure watcher continues running and logs errors when invalid content is detected
 
-            Given Emma has created a file "vehicle.md" with:
+            Given Emma has created a file "docs/vehicle.md" with:
                 """
                 ```mermaid
                 classDiagram
@@ -297,10 +309,10 @@ Background: File watching system testing environment
                 }
                 ```
                 """
-                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And Emma has started "mermaid-codegen watch" in the background
                 And the watch process is running
-                And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-            When Emma modifies the file "vehicle.md" to:
+                And Emma records the hash of "src/global/Vehicle.Generated.cs"
+            When Emma modifies the file "docs/vehicle.md" to:
                 """
                 classDiagram
                     class Vehicle {
@@ -316,12 +328,12 @@ Background: File watching system testing environment
             Then an error should be logged to the console output
                 And the watch process should continue running
                 And the watch process should not crash
-                And Emma verifies the hash of "output/code/global/Vehicle.Generated.cs" has not changed
+                And Emma verifies the hash of "src/global/Vehicle.Generated.cs" has not changed
                 And no new output files should be generated for the invalid content
 
     Scenario: Watch handles invalid YAML content gracefully
         Ensure watcher continues running and logs errors when invalid YAML is detected
-            Given Emma has created a file "vehicle.yml" with content:
+            Given Emma has created a file "docs/vehicle.yml" with content:
                                 """
                                 Name: Vehicle
                                 Namespace: global
@@ -340,10 +352,10 @@ Background: File watching system testing environment
                                 Implementations: {}
                                 Lines: {}
                                 """
-                And Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" in the background
+                And Emma has started "mermaid-codegen watch" in the background
                 And the watch process is running
-                And Emma records the hash of "output/code/global/Vehicle.Generated.cs"
-                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                And Emma records the hash of "src/global/Vehicle.Generated.cs"
+                And the file "src/global/Vehicle.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -357,7 +369,7 @@ Background: File watching system testing environment
 
                     }
                     """
-            When Emma modifies the file "vehicle.yml" to:
+            When Emma modifies the file "docs/vehicle.yml" to:
                 """
                 Name: Vehicle
                 Namespace: Company.VTC
@@ -377,8 +389,8 @@ Background: File watching system testing environment
             Then an error should be logged to the console output
                 And the watch process should continue running
                 And the watch process should not crash
-                And Emma verifies the hash of "output/code/global/Vehicle.Generated.cs" has not changed
-                And the file "output/code/global/Vehicle.Generated.cs" should contain:
+                And Emma verifies the hash of "src/global/Vehicle.Generated.cs" has not changed
+                And the file "src/global/Vehicle.Generated.cs" should contain:
                     """
                     using System;
                     using System.Collections.Generic;
@@ -394,11 +406,39 @@ Background: File watching system testing environment
                     """
                 And no new code files should be generated for the invalid content
 
+    Scenario: Watch fails clearly when mermaid-codegen.config.json is absent
+        Config mode requires initialization; missing config must produce a clear actionable error
+
+            Given Emma has set up a clean test workspace
+                And Emma deletes the file "mermaid-codegen.config.json"
+            When Emma has started "mermaid-codegen watch" in the background
+            Then the watch process should have exited with a non-zero code
+                And the error output should contain "mermaid-codegen.config.json"
+
+    Scenario: Watch explicit mode works without a config file
+        Verify that all four explicit flags bypass config discovery entirely
+
+            Given Emma has set up a clean test workspace
+                And Emma has created a file "docs/vehicle.md" with:
+                    """
+                    ```mermaid
+                    classDiagram
+                    class Vehicle {
+                        +String Make
+                    }
+                    ```
+                    """
+                And Emma runs "mermaid-codegen initialize -l C# -d templates-only"
+                And Emma has started "mermaid-codegen watch -m docs -y Definitions -o src --templates templates-only/Templates/C#" in the background
+                And the watch process is running
+                And Emma waits for initial file processing to complete
+            Then a file "src/global/Vehicle.Generated.cs" should be created
+
         @manual
         Scenario: Stop watching process gracefully
             Ensure clean shutdown of file watching service
 
-                Given Emma has started "mermaid-codegen watch --input-dir=. --output-dir=output" as process with PID
+                Given Emma has started "mermaid-codegen watch" in the background
                 When Emma sends SIGTERM signal to the watch process
                 Then the watch process should exit with code 0 within 10 seconds
                     And no background processes should remain running
